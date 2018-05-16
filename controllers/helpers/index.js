@@ -20,7 +20,7 @@ module.exports = {
     
 }
 
-function getFoursquareQueryParams ( type, near, term = 'basketball courts') {
+function getFoursquareQueryParams ( type, near, term = 'basketball') {
     
     // Do a near or latLong search
     // when type is not 'city' near is [lat, lng]
