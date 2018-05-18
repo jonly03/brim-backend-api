@@ -1,5 +1,8 @@
 let axios = require('axios');
 let uniqid = require('uniqid');
+var geocoder = require('geocoder');
+
+let CourtsDB = require('../../models/Firestore/courts');
 
 let CONSTANTS = require('../../constants');
 
@@ -16,8 +19,31 @@ module.exports = {
               reject (err);
           })
         })
-    }
+    },
+    getUnsplashPhotos,
+    getLatLngAddress
     
+}
+
+function getLatLngAddress(lat, lng){
+  return new Promise((resolve, reject) => {
+    geocoder.reverseGeocode( lat, lng, function ( err, data ) {
+      if (err) reject(err);
+      
+      const addressParts = data.results[0].formatted_address.split(",");
+      console.log(addressParts);
+      const street = addressParts[0];
+      const city = addressParts[1]
+    
+      const stateZip = addressParts[2].split(" ");
+      const state = stateZip[1];
+      const postalCode = stateZip[2];
+    
+      const country = addressParts[3];
+      
+      resolve({street, city, state, postalCode, country});
+    });
+  })
 }
 
 function getFoursquareQueryParams ( type, near, term = 'basketball') {
@@ -42,6 +68,34 @@ function getFoursquareQueryParams ( type, near, term = 'basketball') {
 function determineSearchParam(type, near){
   
 }
+
+function getUnsplashPhotos(){
+  return new Promise((resolve, reject) =>{
+    axios({
+      method: 'GET',
+      url:`https://api.unsplash.com/search/photos?client_id=${process.env.UNSPLASH_CLIENT_ID}&page=10&orientation=landscape&query=basketball court`
+    })
+    .then(res =>{
+      let unsplashPhotos = res.data.results.map(photo =>{
+        let {id, urls:{raw : url}, user:{username, name: photographer}} = photo;
+        return {
+          id,
+          info:{
+            url,
+            username,
+            photographer
+          }
+        }
+      })
+      
+      resolve(unsplashPhotos);
+    })
+    .catch(err =>{
+      reject(err)
+    })
+  })
+}
+
 function getCourts(type, near){
   return new Promise((resolve, reject) => {
     //const LAT_LONG_ARRAY = [38.568830, -121.467355];
@@ -64,8 +118,6 @@ function getCourts(type, near){
 
 function getCourtsDetails(foursquareCourts){
   return new Promise( (resolve, reject) => {
-    let test = [];
-    test.push(foursquareCourts[0])
     let courtsDetails = foursquareCourts.map(court => getOneCourtDetails(court))
     
     try{
@@ -87,12 +139,19 @@ function getOneCourtDetails(court){
     
     // TODO: Once we have enough photos, reviews, and user submitted data get rid of these
     let promises = [];
+    promises.push(getCourtPhotoPlaceHolders());
     promises.push(getCourtExtraDetails(courtId, 'photos'));
     promises.push(getCourtExtraDetails(courtId, 'tips'));
     
     try{
       Promise.all(promises).then(res =>{
-        let [ photos, reviews ] = res;
+        let [ photoPlaceHolders, photos, reviews ] = res;
+        
+        // If no photos available for court, give it a place holder
+        if (!photos.length){
+          const randIdx = Math.floor(Math.random() * photoPlaceHolders.length);
+          photos = [{placeHolder: photoPlaceHolders[randIdx]}];
+        }
         
         let newCourt = {};
         newCourt.id= court.id;
@@ -103,7 +162,7 @@ function getOneCourtDetails(court){
           total: 0,
           current: 0
         }
-        newCourt.photos = photos ? photos : [];
+        newCourt.photos = photos;
         newCourt.reviews = reviews ? reviews : [];
         
         resolve(newCourt);
@@ -162,6 +221,24 @@ function getCourtExtraDetails(courtId, details){
       .catch(err => {
         reject(err)
       })
+  })
+  
+}
+
+function getCourtPhotoPlaceHolders(){
+  return new Promise((resolve, reject) =>{
+    unsplashPhotosColRef.get().then(qSnap =>{
+      if (!qSnap.empty()){
+        let courtPhotoPlaceHolders = qSnap.map(court => {
+          return court.data;
+        })
+        
+        resolve(courtPhotoPlaceHolders);
+      }
+      else{
+        console.log("No Unsplash photos in Firestore DB")
+      }
+    }).catch(err => reject(err));
   })
   
 }

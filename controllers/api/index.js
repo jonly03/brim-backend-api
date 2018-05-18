@@ -1,10 +1,25 @@
 let express = require('express');
 
+
 let Helpers = require('../helpers');
 let CourtsDB = require('../../models/Firestore/courts');
 
-
 let Router = express.Router();
+
+// Router.get('/courts/unsplash', (req, res) =>{
+//     Helpers.getUnsplashPhotos().then(unsplashPhotos =>{
+        
+//         res.status(200).json(unsplashPhotos)
+//         CourtsDB.saveUnsplashPhotos(unsplashPhotos)
+//         .then(res => {
+//             // console.log(res.length);
+//             // console.log(res);
+//         })
+//         .catch(err => {
+//             res.status(500).json(err);
+//         })
+//     })
+// })
 
 Router.get('/courts/city/:city', function(req, res){
     Helpers.getCourts('city', req.params.city).then(courts => {
@@ -20,18 +35,35 @@ Router.get('/courts/city/:city', function(req, res){
 })
 
 Router.get('/courts/latLng/:lat/:lng', function(req, res){
-    let latLng = [];
-    latLng.push(req.params.lat);
-    latLng.push(req.params.lng);
-    Helpers.getCourts('latLng', latLng).then(courts => {
+    let {lat, lng} = req.params;
+    
+    // Only get courts from foursquare if we don't already have them in our Firestore
+    Helpers.getLatLngAddress(lat, lng).then(address => {
+        return CourtsDB.findCourtsByCity(address.city) // Query Firestore by city
+    })
+    .then(courtsQrySnap =>{
+        if (courtsQrySnap.empty){
+            // Only then use foursquare
+            let latLng = [];
+            latLng.push(lat);
+            latLng.push(lng);
+            return Helpers.getCourts('latLng', latLng)
+        }else{
+            //res.status(200).json(courts);
+            console.log(courtsQrySnap);
+        }
+    })
+    .then(courts => {
         res.status(200).json(courts);
         
         CourtsDB.save(courts).then(res => {
             // console.log(res.length);
             // console.log(res);
         })
-    }).catch(err => {
-        res.status(500).json(err);
+    })
+    .catch(err => {
+        //res.status(500).json(err);
+        console.log(err)
     })
 })
 
