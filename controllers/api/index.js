@@ -37,13 +37,14 @@ Router.get('/courts/city/:city', function(req, res){
 Router.get('/courts/latLng/:lat/:lng', function(req, res){
     let {lat, lng} = req.params;
     
-    // Only get courts from foursquare if we don't already have them in our Firestore
+    // Only get courts from our Firestore
     Helpers.getLatLngAddress(lat, lng).then(address => {
         return CourtsDB.findCourtsByCity(address.city) // Query Firestore by city
     })
     .then(courtsQrySnap =>{
         if (courtsQrySnap.empty){
-            // Only then use foursquare
+            // Save info about the city the request came from to keep track of interest
+            // Send back that we have no courts in that city
             let latLng = [];
             latLng.push(lat);
             latLng.push(lng);
