@@ -14,10 +14,17 @@ app.use(function(req, res, next) {
   next();
 });
 
+let seedRoutes = require('./controllers/seeds');
 let apiRoutes = require('./controllers/api')
+
+app.get('/', (req, res) => {
+  res.send("Hello");
+})
+
+app.use('/seed', seedRoutes);
 
 app.use('/api', apiRoutes);
 
-app.listen(PORT, process.env.IP, () => {
-  console.log(`hoopsgram api server listening on ${process.env.IP}:${PORT}`)
+app.listen(PORT, () => {
+  console.log(`hoopsgram api server listening on: ${PORT}`)
 })
