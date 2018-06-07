@@ -5,6 +5,7 @@
 const HOOPS_PER_COURT = 2;
 const _10K = 10000; let rows = $('.results-table tbody tr');
 var courtsByC = [];
+console.log("Top US Cities With Most Outdoor Basketball Courts")
 	for (let i=0; i < rows.length; i++){
 		let cols = $(rows[i]).children();
 		let cityName = cols[1].textContent;

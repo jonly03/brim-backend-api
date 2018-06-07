@@ -9,7 +9,6 @@ function getCourtPhotosDetails(){
 	// Every court's public_id is formatted like this
 	// courtName__courtId (for now, moving forward when users upload court photos, add the userId)
 	// For now just get everything but going forward (when users upload court photos, search for recent uploads)
-	console.log("nigtmare");
 	return nightmare
 	  .goto(process.env.CONSOLE)
 	  .wait(process.env.CONSOLE_EMAIL_SELECTOR)

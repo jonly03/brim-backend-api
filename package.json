@@ -23,17 +23,17 @@
   "homepage": "https://bitbucket.org/ballup/backend-api#readme",
   "dependencies": {
     "axios": "^0.18.0",
+    "cheerio": "^1.0.0-rc.2",
     "cloudinary": "^1.11.0",
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "firebase-admin": "^5.12.0",
     "geocoder": "^0.2.3",
-    "request": "^2.85.0",
-    "uniqid": "^4.1.1",
     "mongojs": "^2.5.0",
+    "nightmare": "^3.0.1",
     "node-geocoder": "^3.22.0",
-    "cheerio": "^1.0.0-rc.2",
-    "nightmare": "^3.0.1"
+    "request": "^2.85.0",
+    "uniqid": "^5.0.2"
   },
   "devDependencies": {
     "nodemon": "^1.17.4"

@@ -17,7 +17,6 @@ function saveCourtsPhotos(){
 	return new Promise((resolve, reject) => {
 		helpers.getCourtPhotosDetails()
 			.then(page =>{
-				console.log(page);
 			    let $ = Cheerio.load(page);
 			    let photosDetails = helpers.parseCourtPhotos($);
 				// let details = [photosDetails[0]]; // try 1 first
@@ -50,7 +49,7 @@ function saveOneCourtPhoto(details){
 		            console.log(err);
 		            return reject(err);
 		        })
-		    placeholderPhotosMongoDbCollectionRef.update(_id, details, {upsert: true}, function(err){
+		    placeholderPhotosMongoDbCollectionRef.update({_id}, details, {upsert: true}, function(err){
 		        if (err){
 		            console.log(err);
 		            return reject(err);
@@ -61,7 +60,7 @@ function saveOneCourtPhoto(details){
 		else{
 		    realPhotosFirestoreCollectionRef.doc(public_id).set(details).then(() =>{
     			// update the court (details.court_id) with new photos_total
-    			realPhotosFirestoreCollectionRef.doc(details.court_id).get().then(doc =>{
+    			courtsCollectionFirestoreRef.doc(details.court_id).get().then(doc =>{
     				if (doc.exists){
     					let {photos_total} = doc.data();
     					photos_total += 1;
@@ -71,7 +70,7 @@ function saveOneCourtPhoto(details){
     					})
     
     				}else{
-    					console.log(`Failed to get courts/${details.court_id}`);
+    					console.log(`Firestore courts/${details.court_id} doesn't exist`);
     				}
     			})
     		});
@@ -82,7 +81,7 @@ function saveOneCourtPhoto(details){
     			}
     
     			// update the court (details.court_id) with new photos_total
-    			realPhotosMongoDbCollectionRef.findAndModify({
+    			courtsCollectionMongoDbRef.findAndModify({
     					query:{_id: details.court_id},
     					update:{$inc:{photos_total: 1}}
     				}, 
