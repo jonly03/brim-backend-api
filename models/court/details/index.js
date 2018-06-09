@@ -1,6 +1,6 @@
 let helpers = require('./helpers');
 
-const firestoreCollectionRef = require('../../Firestore').collection('courts');
+const firestoreCollectionRef = require('../../Firestore').firestore.collection('courts');
 const mongoDbCollectionRef = require('../../MongoDB').collection('courts');
 
 function saveOneCourtInfo(id, name, location){

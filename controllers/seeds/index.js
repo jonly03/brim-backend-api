@@ -11,7 +11,7 @@ Router.get('/courts-info', (req, res) =>{
 	// Save courts 1 by 1 because otherwise the Google Places APIs are going to trip
 	// Another solution can be setInterval for each call but I wanted to see uploaded pictures for each court and get rid of the ones which weren't descriptive of basketball courts anyway.
 	const usaCourts = courtsSeedData['USA']
-	const cityName = Object.keys(usaCourts)[0];
+	const cityName = Object.keys(usaCourts)[25];
 
 	//cityNames.forEach(cityName => {
 		const cityCoords = [usaCourts[cityName]];

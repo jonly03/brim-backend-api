@@ -1,4 +1,4 @@
-const firestoreRef = require('../../Firestore');
+const firestoreRef = require('../../Firestore').firestore;
 const mongoDbRef = require('../../MongoDB');
 
 module.exports = {
