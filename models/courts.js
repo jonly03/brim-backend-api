@@ -1,7 +1,7 @@
 const firebase = require('firebase-admin');
 const Helpers = require('../../controllers/helpers');
 
-let db = require('../../models/Firestore');
+let db = require('../../models/Firestore').firestore;
 
 // TODO: Add court checkins collections
 // TODO: Add user, user reviews, user checkins, user favorites collections

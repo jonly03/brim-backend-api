@@ -1,7 +1,7 @@
 const Cheerio = require('cheerio');
 const helpers = require('./helpers');
 
-const firestoreRef = require('../../Firestore');
+const firestoreRef = require('../../Firestore').firestore;
 const mongoDbRef = require('../../MongoDB');
 
 const courtsCollectionFirestoreRef = require('../details').firestoreCollectionRef;
