@@ -100,7 +100,7 @@ function uploadCourtPhotos(courtId, courtName, photos){
 function uploadCourtPhoto(url, court_id, courtName){
 	
 	return new Promise((resolve, reject) => {
-		const public_id = `${courtName.split(' ').join('_')}__${court_id}`;
+		const public_id = `${courtName.split(' ').join('_')}__${court_id}__${uniqid()}`;
 		const options = {
 			public_id,
 			overwrite: true

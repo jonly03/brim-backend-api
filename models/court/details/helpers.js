@@ -85,7 +85,7 @@ function isWithin(point, boundingBox){
             point.lng < boundingBox.max.lng;
 }
 
-function tryGettingNearbyCourts(latLng){
+async function tryGettingNearbyCourts(latLng){
     // Try 15 mi radius first, if no courts keep incrementing
     // Give up after 30 mi radius
     return new Promise(async (resolve, reject) =>{
@@ -102,7 +102,7 @@ function tryGettingNearbyCourts(latLng){
 		}
 		while (courts.length === 0 && idx < mileRadiusesToTry.length)
 		
-		resolve(courts);
+		resolve({dist: mileRadiusesToTry[idx-1], courts});
     })
 }
 

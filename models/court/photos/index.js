@@ -99,14 +99,59 @@ function saveOneCourtPhoto(details){
 	})
 }
 
+function getPlaceholderPhotos(){
+	return new Promise((resolve, reject) =>{
+		placeholderPhotosFirestoreCollectionRef.get().then(querySnap =>{
+			if (querySnap.empty){
+				console.log("empty placeholders");
+			}
+			
+			let placeholdersDocs = querySnap.docs;
+			
+			let placeholderPhotos = placeholdersDocs.map(doc =>{
+				return doc.data()
+			})
+			
+			resolve(placeholderPhotos);
+		})
+		.catch(err => {
+			console.log(err);
+			reject(err);
+		})
+	})
+}
+
+function getCourtPhotos(courtId){
+	return new Promise((resolve, reject) =>{
+		realPhotosFirestoreCollectionRef.where('court_id', '==', courtId).get()
+			.then(querySnap => {
+				if (querySnap.empty) resolve([]) // No photos for this court
+				
+				let photosDocs = querySnap.docs;
+			
+				let courtPhotos = photosDocs.map(doc =>{
+					return doc.data()
+				})
+				
+				resolve(courtPhotos);
+			})
+			.catch(err => {
+				console.log(err);
+				reject(err);
+			})
+	})
+}
+
 module.exports = {
     real:{
     	firestoreCollectionRef: realPhotosFirestoreCollectionRef,
-    	mongoDbCollectionRef: realPhotosMongoDbCollectionRef
+    	mongoDbCollectionRef: realPhotosMongoDbCollectionRef,
+    	getCourtPhotos
     },
     placeholder:{
     	firestoreCollectionRef: placeholderPhotosFirestoreCollectionRef,
 		mongoDbCollectionRef: placeholderPhotosMongoDbCollectionRef,
+		getPlaceholderPhotos
     },
     downloadAndSave: saveCourtsPhotos // download and save real and placeholders from the cloud
 }

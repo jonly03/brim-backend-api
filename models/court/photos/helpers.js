@@ -63,7 +63,7 @@ function parseCourtPhotos($){
         if (header === 'Unsplash'){
           let _id = public_id.split('__')[1];
           let username = public_id.split('__')[2];
-          let photographer = public_id.split('__')[3];
+          let photographer = public_id.split('__')[3].split('.')[0];
           
           images.push({
             url_root: process.env.COURT_PHOTOS_HOST_URL,
@@ -75,6 +75,7 @@ function parseCourtPhotos($){
             height
           })
         } else{
+          // public_id is court_name_name__courtId__uniquId
           let court_name = public_id.split('__')[0];
           let court_id = public_id.split('__')[1].split('.')[0];
           

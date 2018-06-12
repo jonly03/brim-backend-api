@@ -11,7 +11,7 @@ Router.get('/courts-info', (req, res) =>{
 	// Save courts 1 by 1 because otherwise the Google Places APIs are going to trip
 	// Another solution can be setInterval for each call but I wanted to see uploaded pictures for each court and get rid of the ones which weren't descriptive of basketball courts anyway.
 	const usaCourts = courtsSeedData['USA']
-	const cityName = Object.keys(usaCourts)[25];
+	const cityName = Object.keys(usaCourts)[1];
 
 	//cityNames.forEach(cityName => {
 		const cityCoords = [usaCourts[cityName]];
@@ -29,7 +29,7 @@ Router.get('/courts-info', (req, res) =>{
 					//console.log(data);
 					// Parse courts for info we need to save and make requests for reviews
 					let saveCourtsInfo = [];
-					// let uploadCourtPhotos = [];
+					let uploadCourtPhotos = [];
 					// let saveCourtsReviews = [];
 					for (let i=0; i < courtsData.length; i++){
 					    let courts = courtsData[0].data.results;
@@ -41,11 +41,11 @@ Router.get('/courts-info', (req, res) =>{
                     		    db.courts.details.save(id, name,location)
                     		 );
                     
-                    		// if (photos){
-                    		// 	uploadCourtPhotos.push(
-                    		// 	    helpers.uploadCourtPhotos(id, name, photos)
-                    		// 	);
-                    		// }
+                    		if (photos){
+                    			uploadCourtPhotos.push(
+                    			    helpers.uploadCourtPhotos(id, name, photos)
+                    			);
+                    		}
                     
                     		// saveCourtsReviews.push(saveOneCourtReview(place_id))
                     
@@ -53,7 +53,7 @@ Router.get('/courts-info', (req, res) =>{
 					}
 					
 					try{
-                		Promise.all(saveCourtsInfo, /*uploadCourtPhotos*/).then(() =>{
+                		Promise.all(saveCourtsInfo, uploadCourtPhotos).then(() =>{
                 		    res.status(200).send();
                 		})
                 			

@@ -12,8 +12,8 @@ function saveOneCourtInfo(id, name, location){
 					checkins_current:0,
                     checkins_total:0, 
                     favs_total:0, 
-                    photos_total:0, 
-                    likes_total:0, 
+                    photos_total:0,
+                    reviews_total: 0,
                     _id: id,
                     ...locDetails
                 }
