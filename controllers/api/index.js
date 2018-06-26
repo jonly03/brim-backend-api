@@ -1,11 +1,11 @@
-let express = require('express');
+const express = require('express');
 
-let helpers = require('./helpers');
-let courtHelpers = require('../../models/court/details/helpers');
-let courtPhotosHelpers = require('../../models/court/photos');
-let db = require('../../models/Firestore').firestore;
+const helpers = require('./helpers');
+const courtHelpers = require('../../models/court/details/helpers');
+const courtPhotosHelpers = require('../../models/court/photos');
+const db = require('../../models/Firestore').firestore;
 
-let Router = express.Router();
+const Router = express.Router();
 
 // Router.get('/courts/unsplash', (req, res) =>{
 //     Helpers.getUnsplashPhotos().then(unsplashPhotos =>{
@@ -89,6 +89,41 @@ Router.get('/courts/latLng/:lat/:lng', function(req, res){
             console.log(err);
             res.status(500).json(err);
         })
+})
+
+Router.post('/courts/checkin/:courtId', (req, res) =>{
+    // Route to for anonymous checkins
+    // No need for user to be logged in
+    // Just get court's lat, lng and increase their checkins_current & checkins_total
+    if (!req.params.courtId){
+        console.log("Bad request");
+        return res.status(500).json("Bad request: expected a correct court id");
+    }
+    
+    courtHelpers.checkinAnonymous(req.params.courtId)
+    .then(() =>{
+        // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
+        return res.status(200).send();
+    })
+    .catch((err) => res.status(500).send() )
+    
+})
+
+Router.post('/courts/checkout/:courtId', (req, res) =>{
+    // Route to for anonymous checkouts
+    // No need for user to be logged in
+    // Just get court's lat, lng and decrease their checkins_current & checkins_total
+    if (!req.params.courtId){
+        console.log("Bad request");
+        return res.status(500).json("Bad request: expected a correct court id");
+    }
+    
+    courtHelpers.checkoutAnonymous(req.params.courtId)
+    .then(() =>{
+        // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
+        return res.status(200).send();
+    })
+    .catch(() => res.status(500).send());
 })
 
 module.exports = Router;

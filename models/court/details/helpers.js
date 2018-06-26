@@ -1,4 +1,5 @@
 const {firebase, firestore} = require('../../Firestore')
+const mongoDB = require('../../MongoDB');
 const NodeGeocoder = require('node-geocoder');
 var geodist = require('geodist');
 
@@ -11,6 +12,7 @@ const nodeGeocoderOptions = {
 const geocoder = NodeGeocoder(nodeGeocoderOptions);
 
 const firestoreCourtsRef = firestore.collection('courts');
+const mongoDBCourtsRef = mongoDB.collection('courts');
 
 function getLocDetails(coords){
 	return new Promise((resolve, reject) =>{
@@ -174,8 +176,83 @@ function sortByNearest(latLng, courtsList){
     return courts.sort((court1, court2) => court1.dist - court2.dist);
 }
 
+function checkinAnonymous(courtId){
+    return new Promise((resolve, reject) => {
+        // Find the court and increase the current and total checkins
+        firestoreCourtsRef.doc(courtId).get().then(doc =>{
+    		if (doc.exists){
+    			let {checkins_current, checkins_total} = doc.data();
+    			checkins_current += 1;
+    			checkins_total += 1;
+    
+    			doc.ref.update({checkins_current, checkins_total}).then(() =>{
+    				console.log(`Done updating the current & total checkins for courts/${courtId}`);
+    				resolve();
+    			})
+    
+    		}else{
+    			console.log(`Firestore courts/${courtId} doesn't exist`);
+    			reject();
+    		}
+    	})
+    	
+    	mongoDBCourtsRef.findAndModify({
+    			query:{_id: courtId},
+    			update:{$inc:{checkins_current: 1, checkins_total: 1}}
+    		}, 
+    		(err, doc) =>{
+    			if (err) {
+    			    console.log(err);
+    			    return reject(err);
+    			}
+    
+    			resolve();
+    		}
+    	)
+    });
+}
+
+function checkoutAnonymous(courtId){
+    return new Promise((resolve, reject) => {
+        // Find the court and decrease the current checkins
+        firestoreCourtsRef.doc(courtId).get().then(doc =>{
+    		if (doc.exists){
+    			let {checkins_current} = doc.data();
+    			if (checkins_current > 0){
+    			    // Make sure to never have a negative checkin current count
+        			checkins_current -= 1;
+        
+        			doc.ref.update({checkins_current}).then(() =>{
+        				console.log(`Done checking out of the court/${courtId}`);
+        				resolve();
+        			})
+    			}
+    
+    		}else{
+    			console.log(`Firestore courts/${courtId} doesn't exist`);
+    			reject();
+    		}
+    	})
+    	
+    	mongoDBCourtsRef.findAndModify({
+    			query:{_id: courtId, checkins_current: {$gt: 0}},
+    			update:{$inc:{checkins_current: -1, checkins_total: -1}}
+    		}, 
+    		(err, doc) =>{
+    			if (err) {
+    			    console.log(err);
+    			    return reject(err);
+    			}
+    
+    			resolve();
+    		}
+    	)
+    });
+}
 
 module.exports = {
     getLocDetails,
-    tryGettingNearbyCourts
+    tryGettingNearbyCourts,
+    checkinAnonymous,
+    checkoutAnonymous
 }

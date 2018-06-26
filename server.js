@@ -1,10 +1,10 @@
 require('dotenv').config();
-let axios = require('axios');
-let express = require('express');
+const express = require('express');
+const bodyParser = require('body-parser');
 
 
-let app = express();
-let PORT = process.env.PORT || 8080;
+const app = express();
+const PORT = process.env.PORT || 8080;
 
 // Enable CORS
 // TODO only allow requests from hoopsgram.com
@@ -14,8 +14,11 @@ app.use(function(req, res, next) {
   next();
 });
 
-let seedRoutes = require('./controllers/seeds');
-let apiRoutes = require('./controllers/api')
+// parse application/json
+app.use(bodyParser.json())
+
+const seedRoutes = require('./controllers/seeds');
+const apiRoutes = require('./controllers/api')
 
 app.get('/', (req, res) => {
   res.send("Hello");
