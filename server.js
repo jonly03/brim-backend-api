@@ -29,7 +29,7 @@ app.use('/seed', seedRoutes);
 app.use('/api', apiRoutes);
 
 
-app.get('/checkin/:courtId', (req, res) =>{
+app.post('/checkin/:courtId', (req, res) =>{
     // Route to for anonymous checkins
     // No need for user to be logged in
     // Just get court's lat, lng and increase their checkins_current & checkins_total
@@ -53,7 +53,7 @@ app.get('/checkin/:courtId', (req, res) =>{
     
 })
 
-app.get('/checkout/:courtId', (req, res) =>{
+app.post('/checkout/:courtId', (req, res) =>{
     // Route to for anonymous checkouts
     // No need for user to be logged in
     // Just get court's lat, lng and decrease their checkins_current & checkins_total
