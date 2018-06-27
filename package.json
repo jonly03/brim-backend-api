@@ -34,6 +34,7 @@
     "nightmare": "^3.0.1",
     "node-geocoder": "^3.22.0",
     "request": "^2.85.0",
+    "socket.io": "^2.1.1",
     "uniqid": "^5.0.2"
   },
   "devDependencies": {

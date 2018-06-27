@@ -187,7 +187,7 @@ function checkinAnonymous(courtId){
     
     			doc.ref.update({checkins_current, checkins_total}).then(() =>{
     				console.log(`Done updating the current & total checkins for courts/${courtId}`);
-    				resolve();
+    				resolve({current:checkins_current, total:checkins_total});
     			})
     
     		}else{
@@ -198,7 +198,8 @@ function checkinAnonymous(courtId){
     	
     	mongoDBCourtsRef.findAndModify({
     			query:{_id: courtId},
-    			update:{$inc:{checkins_current: 1, checkins_total: 1}}
+    			update:{$inc:{checkins_current: 1, checkins_total: 1}},
+    			new: true
     		}, 
     		(err, doc) =>{
     			if (err) {
@@ -206,7 +207,7 @@ function checkinAnonymous(courtId){
     			    return reject(err);
     			}
     
-    			resolve();
+    			resolve({current: doc.checkins_current, total:doc.checkins_total});
     		}
     	)
     });
@@ -224,7 +225,7 @@ function checkoutAnonymous(courtId){
         
         			doc.ref.update({checkins_current}).then(() =>{
         				console.log(`Done checking out of the court/${courtId}`);
-        				resolve();
+        				resolve({current: checkins_current});
         			})
     			}
     
@@ -236,7 +237,8 @@ function checkoutAnonymous(courtId){
     	
     	mongoDBCourtsRef.findAndModify({
     			query:{_id: courtId, checkins_current: {$gt: 0}},
-    			update:{$inc:{checkins_current: -1, checkins_total: -1}}
+    			update:{$inc:{checkins_current: -1, checkins_total: -1}},
+    			new: true
     		}, 
     		(err, doc) =>{
     			if (err) {
@@ -244,7 +246,7 @@ function checkoutAnonymous(courtId){
     			    return reject(err);
     			}
     
-    			resolve();
+    			resolve({current: doc.checkins_current});
     		}
     	)
     });
