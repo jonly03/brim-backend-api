@@ -87,7 +87,7 @@ function isWithin(point, boundingBox){
             point.lng < boundingBox.max.lng;
 }
 
-async function tryGettingNearbyCourts(latLng){
+async function tryGettingNearbyCourtsFirestore(latLng){
     // Try 15 mi radius first, if no courts keep incrementing
     // Give up after 30 mi radius
     return new Promise(async (resolve, reject) =>{
@@ -97,7 +97,7 @@ async function tryGettingNearbyCourts(latLng){
 		do{
 			try{
 				console.log(`Trying getting courts near ${mileRadiusesToTry[idx]} miles...`);
-				courts = await getCourtsNearBy(latLng, mileRadiusesToTry[idx++]);
+				courts = await getCourtsNearByFirestore(latLng, mileRadiusesToTry[idx++]);
 			} catch(err){
 				reject(err);
 			}
@@ -108,7 +108,50 @@ async function tryGettingNearbyCourts(latLng){
     })
 }
 
-function getCourtsNearBy(latLng, radius) {
+async function tryGettingNearbyCourtsMongoDB(latLng){
+    // Try 15 mi radius first, if no courts keep incrementing
+    // Give up after 30 mi radius
+    return new Promise(async (resolve, reject) =>{
+		let mileRadiusesToTry = [15, 20, 25, 30];
+		let idx = 0;
+		let courts = [];
+		do{
+			try{
+				console.log(`Trying getting courts near ${mileRadiusesToTry[idx]} miles...`);
+				courts = await getCourtsNearByMongoDB(latLng, mileRadiusesToTry[idx++]);
+			} catch(err){
+				reject(err);
+			}
+		}
+		while (courts.length === 0 && idx < mileRadiusesToTry.length)
+		
+		resolve({dist: mileRadiusesToTry[idx-1], courts});
+    })
+}
+
+function getCourtsNearByMongoDB(latLng, radius) {
+	// TODO: Handle pagination
+	// Get data in batches
+    return new Promise((resolve, reject) => {
+        let boundingBox = getBoundingBox(latLng, radius);
+    	
+    	mongoDBCourtsRef.find({
+    	    lat: {$lt: boundingBox.max.lat}, 
+    	    lat: {$gt: boundingBox.min.lat},
+    	    lng: {$lt: boundingBox.max.lng},
+    	    lng: {$gt: boundingBox.min.lng}
+    	}, (err, doc) => {
+    	    if (err){
+    	        console.log("Error getting nearby courts: ", err);
+    	        reject(err)
+    	    }
+    	   // console.log(doc);
+    	    resolve(sortByNearestMongoDB(latLng, doc));
+    	})
+    })
+}
+
+function getCourtsNearByFirestore(latLng, radius) {
 	// TODO: Handle pagination
 	// Get data in batches
     return new Promise((resolve, reject) => {
@@ -132,7 +175,7 @@ function getCourtsNearBy(latLng, radius) {
                     return isWithin({lat:courtLat, lng: courtLng}, boundingBox)
                 });
                 
-                resolve(sortByNearest(latLng, courts));
+                resolve(sortByNearestFirestore(latLng, courts));
             })
     
             .catch(function(err) {
@@ -158,7 +201,7 @@ function getCourtsByCountry(){
 	// TODO: eventually give people a way to query courts by country
 }
 
-function sortByNearest(latLng, courtsList){
+function sortByNearestFirestore(latLng, courtsList){
 	let courts = courtsList.map(court => {
         let tempCourt = court.data();
         
@@ -170,6 +213,24 @@ function sortByNearest(latLng, courtsList){
                         {exact: true, unit: 'mi'}).toFixed(1);
         tempCourt.dist = Number(dist);
         return tempCourt;
+        
+    });
+                
+    return courts.sort((court1, court2) => court1.dist - court2.dist);
+}
+
+function sortByNearestMongoDB(latLng, courtsList){
+	let courts = courtsList.map(court => {
+        // let tempCourt = court.data();
+        
+        const {lat: courtLat, lng: courtLng} = court;
+        
+        // Calculate distance from current location and add dist property to each court
+        var dist = geodist({lat: latLng.lat, lon: latLng.lng}, 
+                        {lat: courtLat, lon: courtLng}, 
+                        {exact: true, unit: 'mi'}).toFixed(1);
+        court.dist = Number(dist);
+        return court;
         
     });
                 
@@ -254,7 +315,8 @@ function checkoutAnonymous(courtId){
 
 module.exports = {
     getLocDetails,
-    tryGettingNearbyCourts,
+    tryGettingNearbyCourtsFirestore,
+    tryGettingNearbyCourtsMongoDB,
     checkinAnonymous,
     checkoutAnonymous
 }

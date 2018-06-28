@@ -160,6 +160,11 @@ let courts = {
         sacramento_ca:{
             lat: 38.5816,
             lng: -121.4944
+        },
+        // Fayeteville
+        fayeteville_ak:{
+            lat: 36.081339,
+            lng: -94.174614
         }
     }
 }
