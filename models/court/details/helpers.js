@@ -137,16 +137,20 @@ function getCourtsNearByMongoDB(latLng, radius) {
     	
     	mongoDBCourtsRef.find({
     	    lat: {$lt: boundingBox.max.lat}, 
-    	    lat: {$gt: boundingBox.min.lat},
-    	    lng: {$lt: boundingBox.max.lng},
-    	    lng: {$gt: boundingBox.min.lng}
-    	}, (err, doc) => {
+    	    lat: {$gt: boundingBox.min.lat}
+    	}, (err, courts) => {
     	    if (err){
     	        console.log("Error getting nearby courts: ", err);
     	        reject(err)
     	    }
     	   // console.log(doc);
-    	    resolve(sortByNearestMongoDB(latLng, doc));
+    	   courts = courts.filter(court =>{
+                const {lat: courtLat, lng: courtLng} = court;
+                
+                // results are only filtered by latitude, filter them again
+                return isWithin({lat:courtLat, lng: courtLng}, boundingBox)
+            });
+    	    resolve(sortByNearestMongoDB(latLng, courts));
     	})
     })
 }
