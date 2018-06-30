@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 8080;
 // Enable CORS
 // TODO only allow requests from hoopsgram.com
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -87,4 +87,45 @@ let client;
 
 io.on('connection', (socket) => {
   client = socket;
+  
+  // When connected, keep an ear out for checkin messages and save the connected client
+  client.on('checkin', courtId =>{
+    courtHelpers.checkinAnonymous(client.id, courtId)
+      .then(checkins => {
+        client.emit('checkedin', {courtId, checkins});
+        client.broadcast('checkedin', {courtId, checkins})
+      })
+      .catch(err =>{
+        console.log('Failed to check user in');
+        console.log(err);
+        client.emit('checkin-failed', {error: 'Failed to check user in'})
+      })
+  })
+  
+  // Keep an ear out for when clients disconnect so we can check them out
+  client.on('checkout', courtId =>{ // Check clients out when we receive the checkout message
+    courtHelpers.checkoutAnonymous(client.id, courtId)
+      .then(checkins => {
+        client.emit('checkedout', {courtId, checkins});
+        client.broadcast('checkedout', {courtId, checkins})
+      })
+      .catch(err =>{
+        console.log('Failed to check user out');
+        console.log(err);
+        client.emit('checkout-failed', {error: 'Failed to check user out'})
+      })
+  })
+  
+  client.on('disconnect', courtId =>{ // Check clients out when they go offline
+    courtHelpers.checkoutAnonymous(client.id, courtId)
+      .then(checkins => {
+          client.emit('checkedout', {courtId, checkins});
+          client.broadcast('checkedout', {courtId, checkins})
+      })
+      .catch(err =>{
+        console.log('Failed to check user out');
+        console.log(err);
+        client.emit('checkout-failed', {error: 'Failed to check user out'})
+      })
+  })
 })

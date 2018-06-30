@@ -13,6 +13,8 @@ const geocoder = NodeGeocoder(nodeGeocoderOptions);
 
 const firestoreCourtsRef = firestore.collection('courts');
 const mongoDBCourtsRef = mongoDB.collection('courts');
+const firestoreCheckinsRef = firestore.collection('checkins');
+const mongoDBCheckinsRef = mongoDB.collection('checkins');
 
 function getLocDetails(coords){
 	return new Promise((resolve, reject) =>{
@@ -241,78 +243,123 @@ function sortByNearestMongoDB(latLng, courtsList){
     return courts.sort((court1, court2) => court1.dist - court2.dist);
 }
 
-function checkinAnonymous(courtId){
+function checkinAnonymous(clientId, courtId){
     return new Promise((resolve, reject) => {
         // Find the court and increase the current and total checkins
-        firestoreCourtsRef.doc(courtId).get().then(doc =>{
-    		if (doc.exists){
-    			let {checkins_current, checkins_total} = doc.data();
-    			checkins_current += 1;
-    			checkins_total += 1;
+    //     firestoreCourtsRef.doc(courtId).get().then(doc =>{
+    // 		if (doc.exists){
+    // 			let {checkins_current, checkins_total} = doc.data();
+    // 			checkins_current += 1;
+    // 			checkins_total += 1;
     
-    			doc.ref.update({checkins_current, checkins_total}).then(() =>{
-    				console.log(`Done updating the current & total checkins for courts/${courtId}`);
-    				resolve({current:checkins_current, total:checkins_total});
-    			})
+    // 			doc.ref.update({checkins_current, checkins_total}).then(() =>{
+    // 				console.log(`Done updating the current & total checkins for courts/${courtId}`);
+    // 				resolve({current:checkins_current, total:checkins_total});
+    // 			})
     
-    		}else{
-    			console.log(`Firestore courts/${courtId} doesn't exist`);
-    			reject();
-    		}
-    	})
+    // 		}else{
+    // 			console.log(`Firestore courts/${courtId} doesn't exist`);
+    // 			reject();
+    // 		}
+    // 	})
     	
-    	mongoDBCourtsRef.findAndModify({
-    			query:{_id: courtId},
-    			update:{$inc:{checkins_current: 1, checkins_total: 1}},
-    			new: true
-    		}, 
-    		(err, doc) =>{
-    			if (err) {
-    			    console.log(err);
-    			    return reject(err);
-    			}
-    
-    			resolve({current: doc.checkins_current, total:doc.checkins_total});
-    		}
+    	// Add the checkin record for the court then increment checkins for court
+    	mongoDBCheckinsRef.update({
+    	        query:  {court_id: courtId}, 
+    	        update: {$addToSet: {clients_ids: clientId}}, 
+    	        upsert: true
+    	    }, 
+    	    (err, doc) =>{
+    	        if (err){
+    	            console.log(err);
+    	            reject(err);
+    	        }
+    	        
+    	        // Increment checkins for court
+    	        mongoDBCourtsRef.findAndModify({
+            			query:  {_id: courtId},
+            			update: {$inc:{checkins_current: 1, checkins_total: 1}},
+            			new:    true
+    	            }, 
+            		(err, doc) =>{
+            			if (err) {
+            			    console.log(err);
+            			    return reject(err);
+            			}
+            
+            			resolve({current: doc.checkins_current, total:doc.checkins_total});
+            		}
+            	)
+    	    }
     	)
     });
 }
 
-function checkoutAnonymous(courtId){
+function checkoutAnonymous(clientId, courtId){
     return new Promise((resolve, reject) => {
         // Find the court and decrease the current checkins
-        firestoreCourtsRef.doc(courtId).get().then(doc =>{
-    		if (doc.exists){
-    			let {checkins_current} = doc.data();
-    			if (checkins_current > 0){
-    			    // Make sure to never have a negative checkin current count
-        			checkins_current -= 1;
+    //     firestoreCourtsRef.doc(courtId).get().then(doc =>{
+    // 		if (doc.exists){
+    // 			let {checkins_current} = doc.data();
+    // 			if (checkins_current > 0){
+    // 			    // Make sure to never have a negative checkin current count
+    //     			checkins_current -= 1;
         
-        			doc.ref.update({checkins_current}).then(() =>{
-        				console.log(`Done checking out of the court/${courtId}`);
-        				resolve({current: checkins_current});
-        			})
-    			}
+    //     			doc.ref.update({checkins_current}).then(() =>{
+    //     				console.log(`Done checking out of the court/${courtId}`);
+    //     				resolve({current: checkins_current});
+    //     			})
+    // 			}
     
-    		}else{
-    			console.log(`Firestore courts/${courtId} doesn't exist`);
-    			reject();
-    		}
-    	})
+    // 		}else{
+    // 			console.log(`Firestore courts/${courtId} doesn't exist`);
+    // 			reject();
+    // 		}
+    // 	})
     	
-    	mongoDBCourtsRef.findAndModify({
-    			query:{_id: courtId, checkins_current: {$gt: 0}},
-    			update:{$inc:{checkins_current: -1, checkins_total: -1}},
-    			new: true
-    		}, 
-    		(err, doc) =>{
-    			if (err) {
-    			    console.log(err);
-    			    return reject(err);
-    			}
-    
-    			resolve({current: doc.checkins_current});
-    		}
+    	// Remove checkin record for court then decrement checkins for court
+    	mongoDBCheckinsRef.update({
+        	    query:  {court_id: courtId},
+        	    update: {$pull:{clients_ids: clientId}},
+        	    new:    true
+    	    },
+    	    (err, doc) => {
+    	        if (err){
+    	            console.log(err);
+    	            reject(err);
+    	        }
+    	        
+    	        // remove the court record if no one is left checked in
+    	        // No need to wait for this operation
+    	        if (doc.clients_ids && !doc.clients_ids.length){
+    	            mongoDBCheckinsRef.deleteOne({court_id: courtId}, (err) => {
+    	                if (err){
+            	            console.log(err);
+            	           // reject(err);
+            	        }
+    	            })
+    	        }
+    	        
+    	        // Decrement current checkins for court
+    	        mongoDBCourtsRef.findAndModify({
+            			query:  {_id: courtId, checkins_current: {$gt: 0}},
+            			update: {$inc:{checkins_current: -1}},
+            			new:    true
+        		    }, 
+            		(err, doc) =>{
+            			if (err) {
+            			    console.log(err);
+            			    return reject(err);
+            			}
+                        
+                        if (doc.checkins_current){
+            			    resolve({current: doc.checkins_current});
+                        } else{
+                            resolve({current: 0});
+                        }
+            		}
+            	)
+    	    }
     	)
     });
 }
