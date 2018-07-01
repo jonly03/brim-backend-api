@@ -279,21 +279,21 @@ function checkinAnonymous(clientId, courtId){
     	        console.log(doc)
     	        console.log('increment court checkin count');
     	        // Increment checkins for court
-    	        mongoDBCourtsRef.findAndModify(
-        			{_id: courtId},
-        			{$inc:{checkins_current: 1, checkins_total: 1}},
-        			{new:    true}, 
-            		(err, doc) =>{
-            			if (err) {
-            			    console.log(err);
-            			    return reject(err);
-            			}
-            			
-                        console.log('new doc');
-                        console.log(doc);
-            			resolve({current: doc.checkins_current, total:doc.checkins_total});
-            		}
-            	)
+    	        mongoDBCourtsRef.findAndModify({
+        			query:{_id: courtId},
+        			update:{$inc:{checkins_current: 1, checkins_total: 1}},
+        			new:    true,
+    	        },
+        		(err, doc) =>{
+        			if (err) {
+        			    console.log(err);
+        			    return reject(err);
+        			}
+        			
+                    console.log('new doc after checkin into court');
+                    console.log(doc);
+        			resolve({current: doc.checkins_current, total:doc.checkins_total});
+        		})
     	    }
     	)
     });
