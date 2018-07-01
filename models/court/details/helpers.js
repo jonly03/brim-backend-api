@@ -375,7 +375,9 @@ function checkoutAnonymousOnDisconnect(clientId){
     	    }
     	    
     	    // Every disconnected client might not be checked into any courts
-    	    if (!doc) resolve()
+    	    console.log("console logging doc")
+    	    console.log(doc);
+    	    if (!doc) return resolve()
     	    
     	    const {courtId} = doc;
     	    
