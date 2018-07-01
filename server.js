@@ -100,7 +100,7 @@ io.on('connection', (socket) => {
         console.log('Done checking clientId/' + client.id + ' into courtId/' + courtId);
         console.log('checkedin message sent from server to client');
         client.emit('checkedin', {courtId, checkins});
-        client.broadcast('checkedin', {courtId, checkins})
+        client.broadcast.emit('checkedin', {courtId, checkins})
       })
       .catch(err =>{
         console.log('Failed to check user in');
@@ -114,7 +114,7 @@ io.on('connection', (socket) => {
     courtHelpers.checkoutAnonymous(client.id, courtId)
       .then(checkins => {
         client.emit('checkedout', {courtId, checkins});
-        client.broadcast('checkedout', {courtId, checkins})
+        client.broadcast.emit('checkedout', {courtId, checkins})
       })
       .catch(err =>{
         console.log('Failed to check user out');
@@ -134,7 +134,7 @@ io.on('connection', (socket) => {
             // Just broadcast the message to every other clients still online
             if (courtId && checkins){
               console.log('Broadcasting disconnected client checkout message')
-              client.broadcast('checkedout', {courtId, checkins});
+              client.broadcast.emit('checkedout', {courtId, checkins});
             } else{
               console.log('Client was not checked in')
             }
