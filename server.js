@@ -133,6 +133,8 @@ io.on('connection', (socket) => {
           if (courtId && checkins){
             console.log('Broadcasting disconnected client checkout message')
             client.broadcast('checkedout', {courtId, checkins});
+          } else{
+            console.log('Client was not checked in')
           }
       })
       .catch(err =>{
