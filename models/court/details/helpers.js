@@ -374,10 +374,10 @@ function checkoutAnonymousOnDisconnect(clientId){
     	        reject(err)
     	    }
     	    
-    	    const {courtId} = doc;
-    	    
     	    // Every disconnected client might not be checked into any courts
-    	    if (!courtId) resolve()
+    	    if (!doc) resolve()
+    	    
+    	    const {courtId} = doc;
     	    
     	    mongoDBCheckinsRef.update(
         	    {clients_ids: clientId},

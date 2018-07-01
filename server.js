@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 8080;
 // Enable CORS
 // TODO only allow requests from hoopsgram.com
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
