@@ -262,31 +262,35 @@ function checkinAnonymous(clientId, courtId){
     // 			reject();
     // 		}
     // 	})
-    	
+    	console.log("In chekinAnonymous function...");
+    	console.log(`clientId/${clientId} courtId/${courtId}`);
     	// Add the checkin record for the court then increment checkins for court
-    	mongoDBCheckinsRef.update({
-    	        query:  {court_id: courtId}, 
-    	        update: {$addToSet: {clients_ids: clientId}}, 
-    	        upsert: true
-    	    }, 
+    	mongoDBCheckinsRef.update(
+	        {court_id: courtId}, 
+	        {$addToSet: {clients_ids: clientId}}, 
+	        {upsert: true, new: true}, 
     	    (err, doc) =>{
     	        if (err){
     	            console.log(err);
     	            reject(err);
     	        }
     	        
+    	        console.log('new document after update...')
+    	        console.log(doc)
+    	        console.log('increment court checkin count');
     	        // Increment checkins for court
-    	        mongoDBCourtsRef.findAndModify({
-            			query:  {_id: courtId},
-            			update: {$inc:{checkins_current: 1, checkins_total: 1}},
-            			new:    true
-    	            }, 
+    	        mongoDBCourtsRef.findAndModify(
+        			{_id: courtId},
+        			{$inc:{checkins_current: 1, checkins_total: 1}},
+        			{new:    true}, 
             		(err, doc) =>{
             			if (err) {
             			    console.log(err);
             			    return reject(err);
             			}
-            
+            			
+                        console.log('new doc');
+                        console.log(doc);
             			resolve({current: doc.checkins_current, total:doc.checkins_total});
             		}
             	)
