@@ -9,7 +9,8 @@ const PORT = process.env.PORT || 8080;
 // Enable CORS
 // TODO only allow requests from hoopsgram.com
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
+  // res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
+  res.header("Access-Control-Allow-Origin", "hoopsgram-react-web-jonly03.c9users.io");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -126,15 +127,17 @@ io.on('connection', (socket) => {
     console.log('clientId/' + client.id + ' disconnected. Checking them out from any court they were checked into');
     courtHelpers.checkoutAnonymousOnDisconnect(client.id)
       .then(courtInfo => {
-          const {courtId, checkins} = courtInfo;
-          // client.emit('checkedout', {courtId, checkins});
-          // No worry about emitting the message back to the sender because they are disconnected
-          // Just broadcast the message to every other clients still online
-          if (courtId && checkins){
-            console.log('Broadcasting disconnected client checkout message')
-            client.broadcast('checkedout', {courtId, checkins});
-          } else{
-            console.log('Client was not checked in')
+          if (courtInfo !== null && courtInfo){
+            const {courtId, checkins} = courtInfo;
+            // client.emit('checkedout', {courtId, checkins});
+            // Don't worry about emitting the message back to the sender because they are disconnected
+            // Just broadcast the message to every other clients still online
+            if (courtId && checkins){
+              console.log('Broadcasting disconnected client checkout message')
+              client.broadcast('checkedout', {courtId, checkins});
+            } else{
+              console.log('Client was not checked in')
+            }
           }
       })
       .catch(err =>{
