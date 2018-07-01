@@ -364,10 +364,74 @@ function checkoutAnonymous(clientId, courtId){
     });
 }
 
+function checkoutAnonymousOnDisconnect(clientId){
+    return new Promise((resolve, reject) => {
+    	// Before getting rid of checkin record, get court id so we can decrement checkin count
+    	// Client should have been only checked into one court
+    	mongoDBCheckinsRef.findOne({clients_ids: clientId}, (err, doc) =>{
+    	    if (err){
+    	        console.log(err);
+    	        reject(err)
+    	    }
+    	    
+    	    const {courtId} = doc;
+    	    
+    	    // Every disconnected client might not be checked into any courts
+    	    if (!courtId) resolve()
+    	    
+    	    mongoDBCheckinsRef.update(
+        	    {clients_ids: clientId},
+        	    {$pull:{clients_ids: clientId}},
+        	    {new:true},
+        	    (err, doc) => {
+        	        if (err){
+        	            console.log(err);
+        	            reject(err);
+        	        }
+        	        
+        	        // remove the court record if no one is left checked in
+    	            // No need to wait for this operation
+        	        if (doc.clients_ids && !doc.clients_ids.length){
+        	            mongoDBCheckinsRef.deleteOne({court_id: courtId}, (err) => {
+        	                if (err){
+                	            console.log(err);
+                	           // reject(err);
+                	        }
+        	            })
+        	        }
+        	        
+        	        // Decrement current checkins for court
+        	        mongoDBCourtsRef.findAndModify({
+                			query:  {_id: courtId, checkins_current: {$gt: 0}},
+                			update: {$inc:{checkins_current: -1}},
+                			new:    true
+            		    }, 
+                		(err, doc) =>{
+                			if (err) {
+                			    console.log(err);
+                			    return reject(err);
+                			}
+                            
+                            if (doc.checkins_current){
+                			    resolve({courtId: doc._id, current: doc.checkins_current});
+                            } else{
+                                resolve({courtId: doc._id, current: 0});
+                            }
+                		}
+                	)
+        	    }
+        	)
+    	    
+    	})
+    	
+    });
+}
+
 module.exports = {
     getLocDetails,
     tryGettingNearbyCourtsFirestore,
     tryGettingNearbyCourtsMongoDB,
     checkinAnonymous,
-    checkoutAnonymous
+    checkoutAnonymous,
+    checkoutAnonymousOnDisconnect
 }

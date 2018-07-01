@@ -88,10 +88,16 @@ let client;
 io.on('connection', (socket) => {
   client = socket;
   
+  console.log('clientID/' + client.id + ' connected')
+  
   // When connected, keep an ear out for checkin messages and save the connected client
   client.on('checkin', courtId =>{
+    console.log('checkin message from clientId/'+ client.id + ' received for courtId/' + courtId);
+    console.log('checking client in...')
     courtHelpers.checkinAnonymous(client.id, courtId)
       .then(checkins => {
+        console.log('Done checking clientId/' + client.id + ' into courtId/' + courtId);
+        console.log('checkedin message sent from server to client');
         client.emit('checkedin', {courtId, checkins});
         client.broadcast('checkedin', {courtId, checkins})
       })
@@ -116,11 +122,18 @@ io.on('connection', (socket) => {
       })
   })
   
-  client.on('disconnect', courtId =>{ // Check clients out when they go offline
-    courtHelpers.checkoutAnonymous(client.id, courtId)
-      .then(checkins => {
-          client.emit('checkedout', {courtId, checkins});
-          client.broadcast('checkedout', {courtId, checkins})
+  client.on('disconnect', () =>{ // Check clients out when they go offline
+    console.log('clientId/' + client.id + ' disconnected. Checking them out from any court they were checked into');
+    courtHelpers.checkoutAnonymousOnDisconnect(client.id)
+      .then(courtInfo => {
+          const {courtId, checkins} = courtInfo;
+          // client.emit('checkedout', {courtId, checkins});
+          // No worry about emitting the message back to the sender because they are disconnected
+          // Just broadcast the message to every other clients still online
+          if (courtId && checkins){
+            console.log('Broadcasting disconnected client checkout message')
+            client.broadcast('checkedout', {courtId, checkins});
+          }
       })
       .catch(err =>{
         console.log('Failed to check user out');
