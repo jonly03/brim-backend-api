@@ -415,7 +415,7 @@ function checkoutAnonymousOnDisconnect(clientId){
     	        decrementCourtCheckins(courtId)
     	            .then(checkins =>{
     	                console.log('Done decrementing checkins for court');
-    	                resolve(checkins);
+    	                resolve({courtId, checkins});
     	            })
     	            .catch(err => {
     	                console.log('Failed to decrement checkins')
