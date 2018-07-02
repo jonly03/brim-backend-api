@@ -84,6 +84,8 @@ app.post('/checkout/:courtId', (req, res) =>{
 
 app.post('/track/:event', (req, res)=>{
   // non_supported_cities,successful_visits,went_to_court,checked_in
+  console.log('Tracking...');
+  
   const {event} = req.params;
   if (!req.body || !req.body.lat || !req.body.lng) return res.status(400).send();
   
@@ -91,8 +93,8 @@ app.post('/track/:event', (req, res)=>{
     courtHelpers.getLocDetails(req.body)
       .then(loc =>{
         if (loc && loc.city && loc.city.length){
-          console.log(event);
-          console.log(loc.city);
+          console.log(`Event: ${event}`)
+          console.log(`City: ${loc.city}`);
           mixpanel.track(event, {'city': loc.city})
         }
         res.send()
