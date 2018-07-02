@@ -34,7 +34,6 @@ function getLocDetails(coords){
 				//city
 				const city = locDetails.city;
 
-
 				const geoPoint = new firebase.firestore.GeoPoint(coords.lat, coords.lng);
 				
 				resolve({...coords, geoPoint, city, country, address});

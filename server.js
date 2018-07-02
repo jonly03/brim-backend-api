@@ -111,7 +111,8 @@ app.post('/track/:event', (req, res)=>{
         if (loc && loc.city && loc.city.length){
           console.log(`Event: ${event}`)
           console.log(`City: ${loc.city}`);
-          mixpanel.track(event, {'city': loc.city})
+          console.log(`Country: ${loc.country}`);
+          mixpanel.track(event, {'city': loc.city, 'country': loc.country});
         }
         res.send()
       })
