@@ -341,7 +341,7 @@ function checkoutAnonymous(clientId, courtId){
 	        
 	        // remove the court record if no one is left checked in
 	        // No need to wait for this operation
-	        if (doc.clients_ids && !doc.clients_ids.length){
+	        if (doc && doc.clients_ids && !doc.clients_ids.length){
 	            console.log('no one left checkedin after update...')
     	        console.log('removing court record...');
 	            mongoDBCheckinsRef.remove({court_id: courtId}, (err) => {
