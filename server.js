@@ -111,6 +111,8 @@ io.on('connection', (socket) => {
   
   // Keep an ear out for when clients disconnect so we can check them out
   client.on('checkout', courtId =>{ // Check clients out when we receive the checkout message
+    console.log('checkout message from clientId/'+ client.id + ' received for courtId/' + courtId);
+    console.log('checking client out...')
     courtHelpers.checkoutAnonymous(client.id, courtId)
       .then(checkins => {
         client.emit('checkedout', {courtId, checkins});

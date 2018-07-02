@@ -320,27 +320,35 @@ function checkoutAnonymous(clientId, courtId){
     // 			reject();
     // 		}
     // 	})
+    
+        console.log("In chekoutAnonymous function...");
+    	console.log(`clientId/${clientId} courtId/${courtId}`);
     	
     	// Remove checkin record for court then decrement checkins for court
-    	mongoDBCheckinsRef.update({
-        	    query:  {court_id: courtId},
-        	    update: {$pull:{clients_ids: clientId}},
-        	    new:    true
-    	    },
+    	mongoDBCheckinsRef.update(
+    	    {court_id: courtId},
+    	    {$pull:{clients_ids: clientId}},
+    	    {new:    true},
     	    (err, doc) => {
     	        if (err){
     	            console.log(err);
     	            reject(err);
     	        }
     	        
+    	        console.log('new document after update...')
+    	        console.log(doc)
+    	        
     	        // remove the court record if no one is left checked in
     	        // No need to wait for this operation
     	        if (doc.clients_ids && !doc.clients_ids.length){
+    	            console.log('no one left checkedin after update...')
+        	        console.log('removing court record...');
     	            mongoDBCheckinsRef.deleteOne({court_id: courtId}, (err) => {
     	                if (err){
             	            console.log(err);
             	           // reject(err);
             	        }
+            	        console.log('Done removing court record because no one was left checked in')
     	            })
     	        }
     	        
@@ -355,6 +363,9 @@ function checkoutAnonymous(clientId, courtId){
             			    console.log(err);
             			    return reject(err);
             			}
+            			
+            			console.log('new doc after checkout of court');
+                        console.log(doc);
                         
                         if (doc.checkins_current){
             			    resolve({current: doc.checkins_current});
