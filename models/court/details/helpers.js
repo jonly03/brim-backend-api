@@ -384,7 +384,7 @@ function checkoutAnonymousOnDisconnect(clientId){
     	        return resolve()
     	    }
     	    
-    	    const {courtId} = doc;
+    	    const {court_id: courtId} = doc;
     	    console.log(`ClientId/${clientId} was checked into courtId/${courtId}`)
     	    console.log('Checking them out...');
     	    
