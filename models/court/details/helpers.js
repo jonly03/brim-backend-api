@@ -389,7 +389,7 @@ function checkoutAnonymousOnDisconnect(clientId){
     	    console.log('Checking them out...');
     	    
     	    mongoDBCheckinsRef.findAndModify({
-        	    query: {clients_ids: clientId},
+        	    query: {court_id: courtId},
         	    update: {$pull:{clients_ids: clientId}},
         	    new:true
     	    },
@@ -404,7 +404,7 @@ function checkoutAnonymousOnDisconnect(clientId){
     	        if (doc.clients_ids && !doc.clients_ids.length){
     	            console.log('no one left checkedin after update...')
     	            console.log('removing court record...');
-    	            mongoDBCheckinsRef.deleteOne({court_id: courtId}, (err) => {
+    	            mongoDBCheckinsRef.remove({court_id: courtId}, (err) => {
     	                if (err){
             	            console.log(err);
             	           // reject(err);
