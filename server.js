@@ -115,6 +115,8 @@ io.on('connection', (socket) => {
     console.log('checking client out...')
     courtHelpers.checkoutAnonymous(client.id, courtId)
       .then(checkins => {
+        console.log('Done checking clientId/' + client.id + ' out of courtId/' + courtId);
+        console.log('checkedout message sent from server to client');
         client.emit('checkedout', {courtId, checkins});
         client.broadcast.emit('checkedout', {courtId, checkins})
       })

@@ -262,7 +262,7 @@ function checkinAnonymous(clientId, courtId){
     // 			reject();
     // 		}
     // 	})
-    	console.log("In chekinAnonymous function...");
+    	console.log("In checkinAnonymous function...");
     	console.log(`clientId/${clientId} courtId/${courtId}`);
     	// Add the checkin record for the court then increment checkins for court
     	mongoDBCheckinsRef.update(
@@ -321,7 +321,7 @@ function checkoutAnonymous(clientId, courtId){
     // 		}
     // 	})
     
-        console.log("In chekoutAnonymous function...");
+        console.log("In checkoutAnonymous function...");
     	console.log(`clientId/${clientId} courtId/${courtId}`);
     	
     	// Remove checkin record for court then decrement checkins for court
@@ -351,29 +351,29 @@ function checkoutAnonymous(clientId, courtId){
             	        console.log('Done removing court record because no one was left checked in')
     	            })
     	        }
-    	        
+    	        return decrementCourtCheckins(courtId);
     	        // Decrement current checkins for court
-    	        mongoDBCourtsRef.findAndModify({
-            			query:  {_id: courtId, checkins_current: {$gt: 0}},
-            			update: {$inc:{checkins_current: -1}},
-            			new:    true
-        		    }, 
-            		(err, doc) =>{
-            			if (err) {
-            			    console.log(err);
-            			    return reject(err);
-            			}
+    	       // mongoDBCourtsRef.findAndModify({
+            // 			query:  {_id: courtId, checkins_current: {$gt: 0}},
+            // 			update: {$inc:{checkins_current: -1}},
+            // 			new:    true
+        		  //  }, 
+            // 		(err, doc) =>{
+            // 			if (err) {
+            // 			    console.log(err);
+            // 			    return reject(err);
+            // 			}
             			
-            			console.log('new doc after checkout of court');
-                        console.log(doc);
+            // 			console.log('new doc after checkout of court');
+            //             console.log(doc);
                         
-                        if (doc.checkins_current){
-            			    resolve({current: doc.checkins_current});
-                        } else{
-                            resolve({current: 0});
-                        }
-            		}
-            	)
+            //             if (doc.checkins_current){
+            // 			    resolve({current: doc.checkins_current});
+            //             } else{
+            //                 resolve({current: 0});
+            //             }
+            // 		}
+            // 	)
     	    }
     	)
     });
@@ -383,6 +383,8 @@ function checkoutAnonymousOnDisconnect(clientId){
     return new Promise((resolve, reject) => {
     	// Before getting rid of checkin record, get court id so we can decrement checkin count
     	// Client should have been only checked into one court
+    	console.log("In checkoutAnonymousOnDisconnect function...");
+    	console.log(`clientId/${clientId}`);
     	mongoDBCheckinsRef.findOne({clients_ids: clientId}, (err, doc) =>{
     	    if (err){
     	        console.log(err);
@@ -390,9 +392,14 @@ function checkoutAnonymousOnDisconnect(clientId){
     	    }
     	    
     	    // Every disconnected client might not be checked into any courts
-    	    if (doc === null || !doc) return resolve()
+    	    if (doc === null || !doc) {
+    	        console.log(`ClientId/${clientId} is not checked in anywhere`)   
+    	        return resolve()
+    	    }
     	    
     	    const {courtId} = doc;
+    	    console.log(`ClientId/${clientId} was checked into courtId/${courtId}`)
+    	    console.log('Checking them out...');
     	    
     	    mongoDBCheckinsRef.update(
         	    {clients_ids: clientId},
@@ -407,39 +414,68 @@ function checkoutAnonymousOnDisconnect(clientId){
         	        // remove the court record if no one is left checked in
     	            // No need to wait for this operation
         	        if (doc.clients_ids && !doc.clients_ids.length){
+        	            console.log('no one left checkedin after update...')
+        	            console.log('removing court record...');
         	            mongoDBCheckinsRef.deleteOne({court_id: courtId}, (err) => {
         	                if (err){
                 	            console.log(err);
                 	           // reject(err);
                 	        }
+                	        console.log('Done removing court record because no one was left checked in')
         	            })
         	        }
-        	        
+        	        return decrementCourtCheckins(courtId);
         	        // Decrement current checkins for court
-        	        mongoDBCourtsRef.findAndModify({
-                			query:  {_id: courtId, checkins_current: {$gt: 0}},
-                			update: {$inc:{checkins_current: -1}},
-                			new:    true
-            		    }, 
-                		(err, doc) =>{
-                			if (err) {
-                			    console.log(err);
-                			    return reject(err);
-                			}
+        	       // mongoDBCourtsRef.findAndModify({
+                // 			query:  {_id: courtId, checkins_current: {$gt: 0}},
+                // 			update: {$inc:{checkins_current: -1}},
+                // 			new:    true
+            		  //  }, 
+                // 		(err, doc) =>{
+                // 			if (err) {
+                // 			    console.log(err);
+                // 			    return reject(err);
+                // 			}
                             
-                            if (doc.checkins_current){
-                			    resolve({courtId: doc._id, current: doc.checkins_current});
-                            } else{
-                                resolve({courtId: doc._id, current: 0});
-                            }
-                		}
-                	)
+                //             if (doc.checkins_current){
+                // 			    resolve({courtId: doc._id, current: doc.checkins_current});
+                //             } else{
+                //                 resolve({courtId: doc._id, current: 0});
+                //             }
+                // 		}
+                // 	)
         	    }
         	)
     	    
     	})
     	
     });
+}
+
+function decrementCourtCheckins(courtId){
+    console.log(`Decrementing current checkins at courtId/${courtId}...`)
+    return new Promise((resolve, reject) =>{
+        mongoDBCourtsRef.findAndModify({
+			query:  {_id: courtId, checkins_current: {$gt: 0}},
+			update: {$inc:{checkins_current: -1}},
+			new:    true
+	    }, 
+		(err, doc) =>{
+			if (err) {
+			    console.log(err);
+			    return reject(err);
+			}
+			
+			console.log('new doc after checkout of court');
+            console.log(doc);
+            
+            if (doc.checkins_current){
+			    resolve({current: doc.checkins_current});
+            } else{
+                resolve({current: 0});
+            }
+		})
+    })
 }
 
 module.exports = {
