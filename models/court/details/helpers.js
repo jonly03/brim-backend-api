@@ -344,7 +344,7 @@ function checkoutAnonymous(clientId, courtId){
 	        if (doc.clients_ids && !doc.clients_ids.length){
 	            console.log('no one left checkedin after update...')
     	        console.log('removing court record...');
-	            mongoDBCheckinsRef.deleteOne({court_id: courtId}, (err) => {
+	            mongoDBCheckinsRef.remove({court_id: courtId}, (err) => {
 	                if (err){
         	            console.log(err);
         	           // reject(err);
