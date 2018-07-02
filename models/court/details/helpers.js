@@ -21,6 +21,7 @@ function getLocDetails(coords){
 		geocoder.reverse({lat: coords.lat, lon: coords.lng})
 			.then(res => {
 				const locDetails = res[0];
+				console.log(locDetails);
 				const address = locDetails.formattedAddress;
 
 				const addressParts = address.split(',');
