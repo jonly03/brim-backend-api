@@ -2,6 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const courtHelpers = require('./models/court/details/helpers');
+var Mixpanel = require('mixpanel');
+
+var mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
+    protocol: 'https'
+});
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -28,7 +33,6 @@ app.get('/', (req, res) => {
 app.use('/seed', seedRoutes);
 
 app.use('/api', apiRoutes);
-
 
 app.post('/checkin/:courtId', (req, res) =>{
     // Route to for anonymous checkins
@@ -76,6 +80,27 @@ app.post('/checkout/:courtId', (req, res) =>{
         return res.status(200).send();
     })
     .catch(() => res.status(500).send());
+})
+
+app.post('/track/:event', (req, res)=>{
+  // non_supported_cities,successful_visits,went_to_court,checked_in
+  const {event} = req.params;
+  if (!req.body || !req.body.lat || !req.body.lng) return res.status(400).send();
+  
+  if (event === 'non_supported_cities' || event === 'successful_visits' || event === 'went_to_court' || event === 'checked_in'){
+    courtHelpers.getLocDetails(req.body)
+      .then(loc =>{
+        if (loc && loc.city && loc.city.length){
+          console.log(event);
+          console.log(loc.city);
+          mixpanel.track(event, {'city': loc.city})
+        }
+        res.send()
+      })
+      .catch(err => res.send())
+  }else{
+    res.send();
+  }
 })
 
 let server = app.listen(PORT, () => {
