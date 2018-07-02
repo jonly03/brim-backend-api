@@ -22,31 +22,22 @@ function getLocDetails(coords){
 			.then(res => {
 				const locDetails = res[0];
 				console.log(locDetails);
+
+				// Address
 				const address = locDetails.formattedAddress;
 
-				const addressParts = address.split(',');
-
-				// Get 
 				// country (last idx)
-				// state postalCode/zipcode (lastIdx-1)
-				// city (lastIdx-2)
-				// street (lastIdx-3)
-				//from formatted address
+				const addressParts = address.split(',');
 				const lastIdx = addressParts.length -1
-				
 				const country = addressParts[lastIdx].trim();
 
-				const state = addressParts[lastIdx - 1].trim().split(' ')[0];
-				
-				const postalCode = addressParts[lastIdx - 1].trim().split(' ')[1];
+				//city
+				const city = locDetails.city;
 
-				const city = addressParts[lastIdx - 2].trim();
-				
-				const street = addressParts[lastIdx - 3].trim();
-				
+
 				const geoPoint = new firebase.firestore.GeoPoint(coords.lat, coords.lng);
 				
-				resolve({...coords, geoPoint, street, city, state, postalCode, country, address});
+				resolve({...coords, geoPoint, city, country, address});
 			})
 			.catch(err => {
 				reject(err)

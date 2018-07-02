@@ -34,12 +34,12 @@ app.get('/location/:lat/:lng', (req, res) =>{
   console.log(req.params.lat);
   console.log(req.params.lng);
   
-  if (!req.params || !req.params.lat || !req.params.lng) return res.status(400).send();
+  if (!req.params || !req.params.lat || !req.params.lng || !Number(req.params.lat) || !Number(req.params.lng)){     return res.status(400).send();
+  }
   
   const {lat, lng} = req.params
-  courtHelpers.getLocDetails({lat, lng})
+  courtHelpers.getLocDetails({lat: Number(lat), lng:Number(lng)})
     .then(details =>{
-      console.log(details);
       if (details) return res.json(details)
     })
     .catch(err => res.json(err))
