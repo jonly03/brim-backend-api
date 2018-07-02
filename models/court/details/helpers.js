@@ -351,7 +351,15 @@ function checkoutAnonymous(clientId, courtId){
             	        console.log('Done removing court record because no one was left checked in')
     	            })
     	        }
-    	        return decrementCourtCheckins(courtId);
+    	        decrementCourtCheckins(courtId)
+        	            .then(checkins =>{
+        	                console.log('Done decrementing checkins for court');
+        	                resolve(checkins);
+        	            })
+        	            .catch(err => {
+        	                console.log('Failed to decrement checkins')
+        	                reject(err)
+    	                })
     	        // Decrement current checkins for court
     	       // mongoDBCourtsRef.findAndModify({
             // 			query:  {_id: courtId, checkins_current: {$gt: 0}},
@@ -424,7 +432,15 @@ function checkoutAnonymousOnDisconnect(clientId){
                 	        console.log('Done removing court record because no one was left checked in')
         	            })
         	        }
-        	        return decrementCourtCheckins(courtId);
+        	        decrementCourtCheckins(courtId)
+        	            .then(checkins =>{
+        	                console.log('Done decrementing checkins for court');
+        	                resolve(checkins);
+        	            })
+        	            .catch(err => {
+        	                console.log('Failed to decrement checkins')
+        	                reject(err)
+    	                })
         	        // Decrement current checkins for court
         	       // mongoDBCourtsRef.findAndModify({
                 // 			query:  {_id: courtId, checkins_current: {$gt: 0}},
