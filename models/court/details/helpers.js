@@ -325,7 +325,7 @@ function checkoutAnonymous(clientId, courtId){
     	console.log(`clientId/${clientId} courtId/${courtId}`);
     	
     	// Remove checkin record for court then decrement checkins for court
-    	mongoDBCheckinsRef.update(
+    	mongoDBCheckinsRef.findAndModify(
     	    {court_id: courtId},
     	    {$pull:{clients_ids: clientId}},
     	    {new:    true},
@@ -409,7 +409,7 @@ function checkoutAnonymousOnDisconnect(clientId){
     	    console.log(`ClientId/${clientId} was checked into courtId/${courtId}`)
     	    console.log('Checking them out...');
     	    
-    	    mongoDBCheckinsRef.update(
+    	    mongoDBCheckinsRef.findAndModify(
         	    {clients_ids: clientId},
         	    {$pull:{clients_ids: clientId}},
         	    {new:true},
