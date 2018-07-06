@@ -9,13 +9,16 @@ var mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
 });
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3001;
 
 // Enable CORS
 // TODO only allow requests from hoopsgram.com
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
-  // res.header("Access-Control-Allow-Origin", "hoopsgram-react-web-jonly03.c9users.io");
+  if (process.env.NODE_ENV === 'production'){
+    res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
+  }else{
+    res.header("Access-Control-Allow-Origin", "*");
+  }
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -54,23 +57,24 @@ app.post('/checkin/:courtId', (req, res) =>{
     // Route to for anonymous checkins
     // No need for user to be logged in
     // Just get court's lat, lng and increase their checkins_current & checkins_total
-    if (!req.params.courtId){
-        console.log("Bad request");
-        return res.status(500).json("Bad request: expected a correct court id");
-    }
+    // if (!req.params.courtId){
+    //     console.log("Bad request");
+    //     return res.status(500).json("Bad request: expected a correct court id");
+    // }
     
-    courtHelpers.checkinAnonymous(req.params.courtId)
-    .then((checkins) =>{
-        // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
-        if (client){
+    // courtHelpers.checkinAnonymous(req.params.courtId)
+    // .then((checkins) =>{
+    //     // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
+    //     if (client){
         
-          // Notify listening clients with checkins count updates
-          client.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
-          client.broadcast.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
-        }
-        return res.status(200).send();
-    })
-    .catch((err) => res.status(500).send() )
+    //       // Notify listening clients with checkins count updates
+    //       client.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
+    //       client.broadcast.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
+    //     }
+    //     return res.status(200).send();
+    // })
+    // .catch((err) => res.status(500).send() )
+    res.json({msg: "This route does nothing"}); // Moved check in code into socket.io
     
 })
 
@@ -78,46 +82,52 @@ app.post('/checkout/:courtId', (req, res) =>{
     // Route to for anonymous checkouts
     // No need for user to be logged in
     // Just get court's lat, lng and decrease their checkins_current & checkins_total
-    if (!req.params.courtId){
-        console.log("Bad request");
-        return res.status(500).json("Bad request: expected a correct court id");
-    }
+    // if (!req.params.courtId){
+    //     console.log("Bad request");
+    //     return res.status(500).json("Bad request: expected a correct court id");
+    // }
     
-    courtHelpers.checkoutAnonymous(req.params.courtId)
-    .then((checkins) =>{
-        // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
-        if (client){
+    // courtHelpers.checkoutAnonymous(req.params.courtId)
+    // .then((checkins) =>{
+    //     // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
+    //     if (client){
         
-          // Notify listening clients with checkins count updates
-          client.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
-          client.broadcast.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
-        }
+    //       // Notify listening clients with checkins count updates
+    //       client.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
+    //       client.broadcast.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
+    //     }
         
-        return res.status(200).send();
-    })
-    .catch(() => res.status(500).send());
+    //     return res.status(200).send();
+    // })
+    // .catch(() => res.status(500).send());
+    res.json({msg: "This route does nothing"}); // Moved check out code into socket.io
 })
 
 app.post('/track/:event', (req, res)=>{
-  // non_supported_cities,successful_visits,went_to_court,checked_in
-  console.log('Tracking...');
-  
-  const {event} = req.params;
-  if (!req.body || !req.body.lat || !req.body.lng) return res.status(400).send();
-  
-  if (event === 'non_supported_cities' || event === 'successful_visits' || event === 'went_to_court' || event === 'checked_in'){
-    courtHelpers.getLocDetails(req.body)
-      .then(loc =>{
-        if (loc && loc.city && loc.city.length){
-          console.log(`Event: ${event}`)
-          console.log(`City: ${loc.city}`);
-          console.log(`Country: ${loc.country}`);
-          mixpanel.track(event, {'city': loc.city, 'country': loc.country});
-        }
-        res.send()
-      })
-      .catch(err => res.send())
+  if (process.env.NODE_ENV === 'production'){
+    // non_supported_cities,successful_visits,went_to_court,checked_in
+    console.log('Tracking...');
+    
+    const {event} = req.params;
+    if (!req.body || !req.body.lat || !req.body.lng) return res.status(400).send();
+    
+    if (event === 'non_supported_cities' || event === 'successful_visits' || event === 'went_to_court' || event === 'checked_in'){
+      courtHelpers.getLocDetails(req.body)
+        .then(loc =>{
+          if (loc && loc.city && loc.city.length){
+            console.log(`Event: ${event}`)
+            console.log(`City: ${loc.city}`);
+            console.log(`Country: ${loc.country}`);
+            mixpanel.track(event, {'city': loc.city, 'country': loc.country});
+          }
+          res.send()
+        })
+        .catch(err => res.send())
+    }else{
+      res.send();
+    }
   }else{
+    console.log("In testing environment. No need to send data to mixpanel");
     res.send();
   }
 })
