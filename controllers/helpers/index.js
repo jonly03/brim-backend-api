@@ -281,114 +281,114 @@ function getUnsplashPhotosByPage(pageNum){
   // })
 }
 
-function getCourtPhotosDetails(){
-	// Get courts from cloud
-	// Every court's public_id is formatted like this
-	// courtName__courtId (for now, moving forward when users upload court photos, add the userId)
-	// For now just get everything but going forward (when users upload court photos, search for recent uploads)
-	return nightmare
-	  .goto(process.env.CONSOLE)
-	  .wait(process.env.CONSOLE_EMAIL_SELECTOR)
-	  .type(process.env.CONSOLE_EMAIL_SELECTOR, process.env.CONSOLE_EMAIL)
-	  .type(process.env.CONSOLE_PASSWORD_SELECTOR, process.env.CONSOLE_PASSWORD)
-	  .click(process.env.CONSOLE_SUBMIT_SELECTOR)
-	  .wait(process.env.CONSOLE_COURT_PHOTOS_CONTAINER_SELECTOR)
-	  .evaluate((containerToScroll) => {
-	    document.querySelector(containerToScroll).scrollTop = 1000000
-	  }, containerToScroll)
-	  .wait(2000)
-	  .evaluate((containerToScroll) => {
-	    document.querySelector(containerToScroll).scrollTop = 1000000
-	  }, containerToScroll)
-	  .wait(2000)
-	  .evaluate((containerToScroll) => {
-	    document.querySelector(containerToScroll).scrollTop = 1000000
-	  }, containerToScroll)
-	  .wait(2000)
-	  .evaluate((containerToScroll) => {
-	    document.querySelector(containerToScroll).scrollTop = 1000000
-	  }, containerToScroll)
-	  .wait(2000)
-	  .evaluate((containerToScroll) => {
-	    document.querySelector(containerToScroll).scrollTop = 1000000
-	  }, containerToScroll)
-	  .wait(2000)
-	  .evaluate((containerToScroll) => {
-	    document.querySelector(containerToScroll).scrollTop = 1000000
-	  }, containerToScroll)
-	  .wait(2000)
-	  .evaluate(() => document.body.innerHTML)
-}
+// function getCourtPhotosDetails(){
+// 	// Get courts from cloud
+// 	// Every court's public_id is formatted like this
+// 	// courtName__courtId (for now, moving forward when users upload court photos, add the userId)
+// 	// For now just get everything but going forward (when users upload court photos, search for recent uploads)
+// 	return nightmare
+// 	  .goto(process.env.CONSOLE)
+// 	  .wait(process.env.CONSOLE_EMAIL_SELECTOR)
+// 	  .type(process.env.CONSOLE_EMAIL_SELECTOR, process.env.CONSOLE_EMAIL)
+// 	  .type(process.env.CONSOLE_PASSWORD_SELECTOR, process.env.CONSOLE_PASSWORD)
+// 	  .click(process.env.CONSOLE_SUBMIT_SELECTOR)
+// 	  .wait(process.env.CONSOLE_COURT_PHOTOS_CONTAINER_SELECTOR)
+// 	  .evaluate((containerToScroll) => {
+// 	    document.querySelector(containerToScroll).scrollTop = 1000000
+// 	  }, containerToScroll)
+// 	  .wait(2000)
+// 	  .evaluate((containerToScroll) => {
+// 	    document.querySelector(containerToScroll).scrollTop = 1000000
+// 	  }, containerToScroll)
+// 	  .wait(2000)
+// 	  .evaluate((containerToScroll) => {
+// 	    document.querySelector(containerToScroll).scrollTop = 1000000
+// 	  }, containerToScroll)
+// 	  .wait(2000)
+// 	  .evaluate((containerToScroll) => {
+// 	    document.querySelector(containerToScroll).scrollTop = 1000000
+// 	  }, containerToScroll)
+// 	  .wait(2000)
+// 	  .evaluate((containerToScroll) => {
+// 	    document.querySelector(containerToScroll).scrollTop = 1000000
+// 	  }, containerToScroll)
+// 	  .wait(2000)
+// 	  .evaluate((containerToScroll) => {
+// 	    document.querySelector(containerToScroll).scrollTop = 1000000
+// 	  }, containerToScroll)
+// 	  .wait(2000)
+// 	  .evaluate(() => document.body.innerHTML)
+// }
 
-function getOneCourtDetails(court){
-  // get id, name, location, photos, and reviews
-  // specify that these courts were from google places (type='googleplaces' && userId='')
-  // initialize checkins to 0
-  return new Promise((resolve, reject) =>{
-    let { id: courtId} = court;
+// function getOneCourtDetails(court){
+//   // get id, name, location, photos, and reviews
+//   // specify that these courts were from google places (type='googleplaces' && userId='')
+//   // initialize checkins to 0
+//   return new Promise((resolve, reject) =>{
+//     let { id: courtId} = court;
     
-    // TODO: Once we have enough photos, reviews, and user submitted data get rid of these
-    let promises = [];
-    promises.push(getCourtPhotoPlaceHolders());
-    // promises.push(getCourtExtraDetails(courtId, 'photos'));
-    // promises.push(getCourtExtraDetails(courtId, 'tips'));
+//     // TODO: Once we have enough photos, reviews, and user submitted data get rid of these
+//     let promises = [];
+//     promises.push(getCourtPhotoPlaceHolders());
+//     // promises.push(getCourtExtraDetails(courtId, 'photos'));
+//     // promises.push(getCourtExtraDetails(courtId, 'tips'));
     
-    try{
-      Promise.all(promises).then(res =>{
-        let [ photoPlaceHolders, photos, reviews ] = res;
+//     try{
+//       Promise.all(promises).then(res =>{
+//         let [ photoPlaceHolders, photos, reviews ] = res;
         
-        // If no photos available for court, give it a place holder
-        if (!photos.length){
-          const randIdx = Math.floor(Math.random() * photoPlaceHolders.length);
-          photos = [{placeHolder: photoPlaceHolders[randIdx]}];
-        }
+//         // If no photos available for court, give it a place holder
+//         if (!photos.length){
+//           const randIdx = Math.floor(Math.random() * photoPlaceHolders.length);
+//           photos = [{placeHolder: photoPlaceHolders[randIdx]}];
+//         }
         
-        let newCourt = {};
-        newCourt.id= court.id;
-        newCourt.info = {};
-        newCourt.info.name= court.name,
-        // newCourt.info.location = getCourtLocation(court);
-        newCourt.checkins = {
-          total: 0,
-          current: 0
-        }
-        newCourt.photos = photos;
-        newCourt.reviews = reviews ? reviews : [];
+//         let newCourt = {};
+//         newCourt.id= court.id;
+//         newCourt.info = {};
+//         newCourt.info.name= court.name,
+//         // newCourt.info.location = getCourtLocation(court);
+//         newCourt.checkins = {
+//           total: 0,
+//           current: 0
+//         }
+//         newCourt.photos = photos;
+//         newCourt.reviews = reviews ? reviews : [];
         
-        resolve(newCourt);
-      })
-    }catch(err){
-      reject(err);
-    }
-  })
-}
+//         resolve(newCourt);
+//       })
+//     }catch(err){
+//       reject(err);
+//     }
+//   })
+// }
 
-function getCourtPhotoPlaceHolders(){
-  return new Promise((resolve, reject) =>{
-    db.courts.photos.placeholder.firestoreCollectionRef.get().then(qSnap =>{
-      if (!qSnap.empty()){
-        let courtPhotoPlaceHolders = qSnap.map(court => {
-          return court.data;
-        })
+// function getCourtPhotoPlaceHolders(){
+//   return new Promise((resolve, reject) =>{
+//     // db.courts.photos.placeholder.firestoreCollectionRef.get().then(qSnap =>{
+//     //   if (!qSnap.empty()){
+//     //     let courtPhotoPlaceHolders = qSnap.map(court => {
+//     //       return court.data;
+//     //     })
         
-        resolve(courtPhotoPlaceHolders);
-      }
-      else{
-        console.log("No Unsplash photos in Firestore DB")
-      }
-    }).catch(err => reject(err));
+//     //     resolve(courtPhotoPlaceHolders);
+//     //   }
+//     //   else{
+//     //     console.log("No Unsplash photos in Firestore DB")
+//     //   }
+//     // }).catch(err => reject(err));
     
-    db.courts.photos.placeholder.mongoDbCollectionRef.find((err, courtPhotoPlaceholders) =>{
-      if (err) {
-        console.log(err);
-        return reject(err);
-      }
+//     db.courts.photos.placeholder.mongoDbCollectionRef.find((err, courtPhotoPlaceholders) =>{
+//       if (err) {
+//         console.log(err);
+//         return reject(err);
+//       }
       
-      resolve(courtPhotoPlaceholders);
-    })
-  })
+//       resolve(courtPhotoPlaceholders);
+//     })
+//   })
   
-}
+// }
 
 function getLatLngAddress(lat, lng){
   return new Promise((resolve, reject) => {

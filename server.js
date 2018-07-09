@@ -144,6 +144,28 @@ io.on('connection', (socket) => {
   client = socket;
   
   console.log('clientID/' + client.id + ' connected')
+
+  // When we get an 'online' msg with client coords, get nearbycourts to notify to increment their nearby online count
+  client.on('online', coords =>{
+    console.log('clientId/' + client.id + ' just came online');
+    
+    courtHelpers.isClientOnline(client.id).then(clientOnline =>{
+      if (clientOnline){
+        console.log(`ClientId/${client.id} is already online. No need to update anything right now. Just chilling...`)
+      }
+      else{
+        console.log(`ClientId/${client.id} wasn't already online.`)
+        courtHelpers.incrementCourtsNearbyOnlineCounts(client.id,coords)
+          .then(courtIds =>{
+            // If not courts were found near the client, no need to broadcast anything
+            if (courtIds.length){
+              console.log('Broadcasting presence of clientId/' + client.id + 'to courts near them')
+              socket.broadcast.emit('increment_nearby_online_count', courtIds);
+            }
+          })
+      }
+    })
+  })
   
   // When connected, keep an ear out for checkin messages and save the connected client
   client.on('checkin', courtId =>{
@@ -164,7 +186,8 @@ io.on('connection', (socket) => {
   })
   
   // Keep an ear out for when clients disconnect so we can check them out
-  client.on('checkout', courtId =>{ // Check clients out when we receive the checkout message
+  client.on('checkout', courtId =>{ 
+    // Check clients out when we receive the checkout message
     console.log('checkout message from clientId/'+ client.id + ' received for courtId/' + courtId);
     console.log('checking client out...')
     courtHelpers.checkoutAnonymous(client.id, courtId)
@@ -177,17 +200,17 @@ io.on('connection', (socket) => {
       .catch(err =>{
         console.log('Failed to check user out');
         console.log(err);
-        client.emit('checkout-failed', {error: 'Failed to check user out'})
+        // client.emit('checkout-failed', {error: 'Failed to check user out'})
       })
   })
   
-  client.on('disconnect', () =>{ // Check clients out when they go offline
-    console.log('clientId/' + client.id + ' disconnected. Checking them out from any court they were checked into');
+  client.on('disconnect', () =>{ 
+    // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
+    console.log(`clientId/${client.id} disconnected.`)
     courtHelpers.checkoutAnonymousOnDisconnect(client.id)
       .then(courtInfo => {
           if (courtInfo !== null && courtInfo){
             const {courtId, checkins} = courtInfo;
-            // client.emit('checkedout', {courtId, checkins});
             // Don't worry about emitting the message back to the sender because they are disconnected
             // Just broadcast the message to every other clients still online
             if (courtId && checkins){
@@ -201,7 +224,15 @@ io.on('connection', (socket) => {
       .catch(err =>{
         console.log('Failed to check user out');
         console.log(err);
-        client.emit('checkout-failed', {error: 'Failed to check user out'})
+        // client.emit('checkout-failed', {error: 'Failed to check user out'})
       })
+
+    courtHelpers.decrementCourtsNearbyOnlineCounts(client.id).then(courtIds =>{
+      // If not courts were found near the client, no need to broadcast anything
+      if (courtIds.length){
+        console.log('Broadcasting offline status of clientId/' + client.id + 'to courts near them')
+        socket.broadcast.emit('decrement_nearby_online_count', courtIds);
+      }
+    })
   })
 })

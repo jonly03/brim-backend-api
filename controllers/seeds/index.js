@@ -10,11 +10,22 @@ const Router = express.Router();
 Router.get('/courts-info', (req, res) =>{
 	// Save courts 1 by 1 because otherwise the Google Places APIs are going to trip
 	// Another solution can be setInterval for each call but I wanted to see uploaded pictures for each court and get rid of the ones which weren't descriptive of basketball courts anyway.
-	const usaCourts = courtsSeedData['USA']
-	const cityName = Object.keys(usaCourts)[26];
+	const courts = courtsSeedData['USA']
+	if (!courts) {
+		console.log(courts);
+		return res.status(404).json({msg: 'No courts found'})
+	}
 
-	//cityNames.forEach(cityName => {
-		const cityCoords = [usaCourts[cityName]];
+	const _IN_TESTING_MODE_ = true;
+
+	const city = Object.keys(courts)[48];
+	if (!city) {
+		console.log(city);
+		return res.status(404).json({msg: 'No courts found'});
+	}
+
+	//citys.forEach(city => {
+		const cityCoords = [courts[city]];
 	
 		let getNearbyCourtsDetails = cityCoords.map(coords => helpers.getNearbyCourtsDetails(coords))
 
@@ -41,7 +52,7 @@ Router.get('/courts-info', (req, res) =>{
                     		    db.courts.details.save(id, name,location)
                     		 );
                     
-                    		if (photos){
+                    		if (photos && !_IN_TESTING_MODE_){
                     			uploadCourtPhotos.push(
                     			    helpers.uploadCourtPhotos(id, name, photos)
                     			);
