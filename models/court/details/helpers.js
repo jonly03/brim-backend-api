@@ -486,7 +486,7 @@ function incrementCourtsNearbyOnlineCounts(clientId, coords){
 					let {courts} = res;
 
 					let courtIds = [];
-					if (courts.lenght <= 0) {
+					if (!courts || courts.length <= 0) {
 						console.log(`No courts found near clientId/${clientId}`)
 						return resolve(courtIds);
 					}
