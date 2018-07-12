@@ -68,8 +68,8 @@ app.post('/checkin/:courtId', (req, res) =>{
     //     if (client){
         
     //       // Notify listening clients with checkins count updates
-    //       client.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
-    //       client.broadcast.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
+    //       socket.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
+    //       socket.broadcast.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
     //     }
     //     return res.status(200).send();
     // })
@@ -93,8 +93,8 @@ app.post('/checkout/:courtId', (req, res) =>{
     //     if (client){
         
     //       // Notify listening clients with checkins count updates
-    //       client.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
-    //       client.broadcast.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
+    //       socket.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
+    //       socket.broadcast.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
     //     }
         
     //     return res.status(200).send();
@@ -173,13 +173,13 @@ io.on('connection', (socket) => {
       .then(checkins => {
         console.log('Done checking clientId/' + socket.id + ' into courtId/' + courtId);
         console.log('checkedin message sent from server to client');
-        client.emit('checkedin', {courtId, checkins});
-        client.broadcast.emit('checkedin', {courtId, checkins})
+        socket.emit('checkedin', {courtId, checkins});
+        socket.broadcast.emit('checkedin', {courtId, checkins})
       })
       .catch(err =>{
         console.log('Failed to check user in');
         console.log(err);
-        client.emit('checkin-failed', {error: 'Failed to check user in'})
+        socket.emit('checkin-failed', {error: 'Failed to check user in'})
       })
   })
   
@@ -192,13 +192,13 @@ io.on('connection', (socket) => {
       .then(checkins => {
         console.log('Done checking clientId/' + socket.id + ' out of courtId/' + courtId);
         console.log('checkedout message sent from server to client');
-        client.emit('checkedout', {courtId, checkins});
-        client.broadcast.emit('checkedout', {courtId, checkins})
+        socket.emit('checkedout', {courtId, checkins});
+        socket.broadcast.emit('checkedout', {courtId, checkins})
       })
       .catch(err =>{
         console.log('Failed to check user out');
         console.log(err);
-        // client.emit('checkout-failed', {error: 'Failed to check user out'})
+        // socket.emit('checkout-failed', {error: 'Failed to check user out'})
       })
   })
   
@@ -213,7 +213,7 @@ io.on('connection', (socket) => {
             // Just broadcast the message to every other clients still online
             if (courtId && checkins){
               console.log('Broadcasting disconnected client checkout message')
-              client.broadcast.emit('checkedout', {courtId, checkins});
+              socket.broadcast.emit('checkedout', {courtId, checkins});
             } else{
               console.log('Client was not checked in')
             }
@@ -222,7 +222,7 @@ io.on('connection', (socket) => {
       .catch(err =>{
         console.log('Failed to check user out');
         console.log(err);
-        // client.emit('checkout-failed', {error: 'Failed to check user out'})
+        // socket.emit('checkout-failed', {error: 'Failed to check user out'})
       })
 
     courtHelpers.decrementCourtsNearbyOnlineCounts(socket.id).then(courtIds =>{
