@@ -8,7 +8,8 @@ function getCourtPhotosDetails(){
 	// Get courts from cloud
 	// Every court's public_id is formatted like this
 	// courtName__courtId (for now, moving forward when users upload court photos, add the userId)
-	// For now just get everything but going forward (when users upload court photos, search for recent uploads)
+  // For now just get everything but going forward (when users upload court photos, search for recent uploads)
+  console.log("Having nightmares")
 	return nightmare
 	  .goto(process.env.CONSOLE)
 	  .wait(process.env.CONSOLE_EMAIL_SELECTOR)
@@ -19,27 +20,30 @@ function getCourtPhotosDetails(){
 	  .evaluate((containerToScroll) => {
 	    document.querySelector(containerToScroll).scrollTop = 1000000
 	  }, containerToScroll)
-	  .wait(2000)
+    .wait(5000)
+    .evaluate((containerToScroll) => {
+	    document.querySelector(containerToScroll).scrollTop = 1000000
+	  }, containerToScroll)
+	  .wait(5000)
 	  .evaluate((containerToScroll) => {
 	    document.querySelector(containerToScroll).scrollTop = 1000000
 	  }, containerToScroll)
-	  .wait(2000)
+	  .wait(5000)
 	  .evaluate((containerToScroll) => {
 	    document.querySelector(containerToScroll).scrollTop = 1000000
 	  }, containerToScroll)
-	  .wait(2000)
+	  .wait(5000)
 	  .evaluate((containerToScroll) => {
 	    document.querySelector(containerToScroll).scrollTop = 1000000
 	  }, containerToScroll)
-	  .wait(2000)
+	  .wait(5000)
 	  .evaluate((containerToScroll) => {
 	    document.querySelector(containerToScroll).scrollTop = 1000000
 	  }, containerToScroll)
-	  .wait(2000)
+	  .wait(4000)
 	  .evaluate((containerToScroll) => {
 	    document.querySelector(containerToScroll).scrollTop = 1000000
 	  }, containerToScroll)
-	  .wait(2000)
 	  .evaluate(() => document.body.innerHTML)
 }
 

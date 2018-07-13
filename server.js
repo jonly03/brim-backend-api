@@ -9,13 +9,16 @@ var mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
 });
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3001;
 
 // Enable CORS
 // TODO only allow requests from hoopsgram.com
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
-  // res.header("Access-Control-Allow-Origin", "hoopsgram-react-web-jonly03.c9users.io");
+  if (process.env.NODE_ENV === 'production'){
+    res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
+  }else{
+    res.header("Access-Control-Allow-Origin", "*");
+  }
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -54,23 +57,24 @@ app.post('/checkin/:courtId', (req, res) =>{
     // Route to for anonymous checkins
     // No need for user to be logged in
     // Just get court's lat, lng and increase their checkins_current & checkins_total
-    if (!req.params.courtId){
-        console.log("Bad request");
-        return res.status(500).json("Bad request: expected a correct court id");
-    }
+    // if (!req.params.courtId){
+    //     console.log("Bad request");
+    //     return res.status(500).json("Bad request: expected a correct court id");
+    // }
     
-    courtHelpers.checkinAnonymous(req.params.courtId)
-    .then((checkins) =>{
-        // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
-        if (client){
+    // courtHelpers.checkinAnonymous(req.params.courtId)
+    // .then((checkins) =>{
+    //     // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
+    //     if (client){
         
-          // Notify listening clients with checkins count updates
-          client.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
-          client.broadcast.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
-        }
-        return res.status(200).send();
-    })
-    .catch((err) => res.status(500).send() )
+    //       // Notify listening clients with checkins count updates
+    //       client.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
+    //       client.broadcast.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
+    //     }
+    //     return res.status(200).send();
+    // })
+    // .catch((err) => res.status(500).send() )
+    res.json({msg: "This route does nothing"}); // Moved check in code into socket.io
     
 })
 
@@ -78,46 +82,52 @@ app.post('/checkout/:courtId', (req, res) =>{
     // Route to for anonymous checkouts
     // No need for user to be logged in
     // Just get court's lat, lng and decrease their checkins_current & checkins_total
-    if (!req.params.courtId){
-        console.log("Bad request");
-        return res.status(500).json("Bad request: expected a correct court id");
-    }
+    // if (!req.params.courtId){
+    //     console.log("Bad request");
+    //     return res.status(500).json("Bad request: expected a correct court id");
+    // }
     
-    courtHelpers.checkoutAnonymous(req.params.courtId)
-    .then((checkins) =>{
-        // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
-        if (client){
+    // courtHelpers.checkoutAnonymous(req.params.courtId)
+    // .then((checkins) =>{
+    //     // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
+    //     if (client){
         
-          // Notify listening clients with checkins count updates
-          client.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
-          client.broadcast.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
-        }
+    //       // Notify listening clients with checkins count updates
+    //       client.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
+    //       client.broadcast.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
+    //     }
         
-        return res.status(200).send();
-    })
-    .catch(() => res.status(500).send());
+    //     return res.status(200).send();
+    // })
+    // .catch(() => res.status(500).send());
+    res.json({msg: "This route does nothing"}); // Moved check out code into socket.io
 })
 
 app.post('/track/:event', (req, res)=>{
-  // non_supported_cities,successful_visits,went_to_court,checked_in
-  console.log('Tracking...');
-  
-  const {event} = req.params;
-  if (!req.body || !req.body.lat || !req.body.lng) return res.status(400).send();
-  
-  if (event === 'non_supported_cities' || event === 'successful_visits' || event === 'went_to_court' || event === 'checked_in'){
-    courtHelpers.getLocDetails(req.body)
-      .then(loc =>{
-        if (loc && loc.city && loc.city.length){
-          console.log(`Event: ${event}`)
-          console.log(`City: ${loc.city}`);
-          console.log(`Country: ${loc.country}`);
-          mixpanel.track(event, {'city': loc.city, 'country': loc.country});
-        }
-        res.send()
-      })
-      .catch(err => res.send())
+  if (process.env.NODE_ENV === 'production'){
+    // non_supported_cities,successful_visits,went_to_court,checked_in
+    console.log('Tracking...');
+    
+    const {event} = req.params;
+    if (!req.body || !req.body.lat || !req.body.lng) return res.status(400).send();
+    
+    if (event === 'non_supported_cities' || event === 'successful_visits' || event === 'went_to_court' || event === 'checked_in'){
+      courtHelpers.getLocDetails(req.body)
+        .then(loc =>{
+          if (loc && loc.city && loc.city.length){
+            console.log(`Event: ${event}`)
+            console.log(`City: ${loc.city}`);
+            console.log(`Country: ${loc.country}`);
+            mixpanel.track(event, {'city': loc.city, 'country': loc.country});
+          }
+          res.send()
+        })
+        .catch(err => res.send())
+    }else{
+      res.send();
+    }
   }else{
+    console.log("In testing environment. No need to send data to mixpanel");
     res.send();
   }
 })
@@ -134,6 +144,28 @@ io.on('connection', (socket) => {
   client = socket;
   
   console.log('clientID/' + client.id + ' connected')
+
+  // When we get an 'online' msg with client coords, get nearbycourts to notify to increment their nearby online count
+  client.on('online', coords =>{
+    console.log('clientId/' + client.id + ' just came online');
+    
+    courtHelpers.isClientOnline(client.id).then(clientOnline =>{
+      if (clientOnline){
+        console.log(`ClientId/${client.id} is already online. No need to update anything right now. Just chilling...`)
+      }
+      else{
+        console.log(`ClientId/${client.id} wasn't already online.`)
+        courtHelpers.incrementCourtsNearbyOnlineCounts(client.id,coords)
+          .then(courtIds =>{
+            // If not courts were found near the client, no need to broadcast anything
+            if (courtIds.length){
+              console.log('Broadcasting presence of clientId/' + client.id + 'to courts near them')
+              socket.broadcast.emit('increment_nearby_online_count', courtIds);
+            }
+          })
+      }
+    })
+  })
   
   // When connected, keep an ear out for checkin messages and save the connected client
   client.on('checkin', courtId =>{
@@ -154,7 +186,8 @@ io.on('connection', (socket) => {
   })
   
   // Keep an ear out for when clients disconnect so we can check them out
-  client.on('checkout', courtId =>{ // Check clients out when we receive the checkout message
+  client.on('checkout', courtId =>{ 
+    // Check clients out when we receive the checkout message
     console.log('checkout message from clientId/'+ client.id + ' received for courtId/' + courtId);
     console.log('checking client out...')
     courtHelpers.checkoutAnonymous(client.id, courtId)
@@ -167,17 +200,17 @@ io.on('connection', (socket) => {
       .catch(err =>{
         console.log('Failed to check user out');
         console.log(err);
-        client.emit('checkout-failed', {error: 'Failed to check user out'})
+        // client.emit('checkout-failed', {error: 'Failed to check user out'})
       })
   })
   
-  client.on('disconnect', () =>{ // Check clients out when they go offline
-    console.log('clientId/' + client.id + ' disconnected. Checking them out from any court they were checked into');
+  client.on('disconnect', () =>{ 
+    // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
+    console.log(`clientId/${client.id} disconnected.`)
     courtHelpers.checkoutAnonymousOnDisconnect(client.id)
       .then(courtInfo => {
           if (courtInfo !== null && courtInfo){
             const {courtId, checkins} = courtInfo;
-            // client.emit('checkedout', {courtId, checkins});
             // Don't worry about emitting the message back to the sender because they are disconnected
             // Just broadcast the message to every other clients still online
             if (courtId && checkins){
@@ -191,7 +224,15 @@ io.on('connection', (socket) => {
       .catch(err =>{
         console.log('Failed to check user out');
         console.log(err);
-        client.emit('checkout-failed', {error: 'Failed to check user out'})
+        // client.emit('checkout-failed', {error: 'Failed to check user out'})
       })
+
+    courtHelpers.decrementCourtsNearbyOnlineCounts(client.id).then(courtIds =>{
+      // If not courts were found near the client, no need to broadcast anything
+      if (courtIds.length){
+        console.log('Broadcasting offline status of clientId/' + client.id + 'to courts near them')
+        socket.broadcast.emit('decrement_nearby_online_count', courtIds);
+      }
+    })
   })
 })

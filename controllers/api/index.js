@@ -3,7 +3,7 @@ const express = require('express');
 const helpers = require('./helpers');
 const courtHelpers = require('../../models/court/details/helpers');
 const courtPhotosHelpers = require('../../models/court/photos');
-const db = require('../../models/Firestore').firestore;
+// const db = require('../../models/Firestore').firestore;
 
 const Router = express.Router();
 
@@ -38,7 +38,7 @@ const Router = express.Router();
 Router.get('/courts/latLng/:lat/:lng', function(req, res){
     let {lat, lng} = req.params;
     
-    // Only get courts from our Firestore
+    // Only get courts from our DB
     courtHelpers.tryGettingNearbyCourtsMongoDB({lat: Number(lat), lng:Number(lng)})
         .then(courtsRes =>{
             console.log("Done getting nearby courts.");
