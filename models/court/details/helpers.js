@@ -486,7 +486,7 @@ function incrementCourtsNearbyOnlineCounts(clientId, coords){
 					let {courts} = res;
 
 					let courtIds = [];
-					if (courts.lenght <= 0) {
+					if (!courts || courts.length <= 0) {
 						console.log(`No courts found near clientId/${clientId}`)
 						return resolve(courtIds);
 					}
@@ -535,6 +535,9 @@ function decrementCourtsNearbyOnlineCounts(clientId){
 					reject(err);
 				}
 				
+				
+				if (!doc) return resolve([]);
+
 				// Assume that the client exists, so the doc can't be undefined or null
 				console.log(`Found clientId/${clientId} in online records.`)
 				let coords = {lat: doc.lat, lng: doc.lng};

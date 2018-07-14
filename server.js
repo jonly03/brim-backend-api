@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const courtHelpers = require('./models/court/details/helpers');
 var Mixpanel = require('mixpanel');
 
@@ -24,7 +23,7 @@ app.use(function(req, res, next) {
 });
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(express.json())
 
 const seedRoutes = require('./controllers/seeds');
 const apiRoutes = require('./controllers/api')
@@ -68,8 +67,8 @@ app.post('/checkin/:courtId', (req, res) =>{
     //     if (client){
         
     //       // Notify listening clients with checkins count updates
-    //       client.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
-    //       client.broadcast.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
+    //       socket.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
+    //       socket.broadcast.emit("checkin", {courtId: req.params.courtId, current: checkins.current, total:checkins.total});
     //     }
     //     return res.status(200).send();
     // })
@@ -93,8 +92,8 @@ app.post('/checkout/:courtId', (req, res) =>{
     //     if (client){
         
     //       // Notify listening clients with checkins count updates
-    //       client.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
-    //       client.broadcast.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
+    //       socket.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
+    //       socket.broadcast.emit("checkout", {courtId: req.params.courtId, current: checkins.current});
     //     }
         
     //     return res.status(200).send();
@@ -138,28 +137,26 @@ let server = app.listen(PORT, () => {
 
 //SOCKET IO
 let io = require("socket.io").listen(server);
-let client;
 
 io.on('connection', (socket) => {
-  client = socket;
   
-  console.log('clientID/' + client.id + ' connected')
+  console.log('clientID/' + socket.id + ' connected')
 
   // When we get an 'online' msg with client coords, get nearbycourts to notify to increment their nearby online count
-  client.on('online', coords =>{
-    console.log('clientId/' + client.id + ' just came online');
+  socket.on('online', coords =>{
+    console.log('clientId/' + socket.id + ' just came online');
     
-    courtHelpers.isClientOnline(client.id).then(clientOnline =>{
+    courtHelpers.isClientOnline(socket.id).then(clientOnline =>{
       if (clientOnline){
-        console.log(`ClientId/${client.id} is already online. No need to update anything right now. Just chilling...`)
+        console.log(`ClientId/${socket.id} is already online. No need to update anything right now. Just chilling...`)
       }
       else{
-        console.log(`ClientId/${client.id} wasn't already online.`)
-        courtHelpers.incrementCourtsNearbyOnlineCounts(client.id,coords)
+        console.log(`ClientId/${socket.id} wasn't already online.`)
+        courtHelpers.incrementCourtsNearbyOnlineCounts(socket.id,coords)
           .then(courtIds =>{
             // If not courts were found near the client, no need to broadcast anything
             if (courtIds.length){
-              console.log('Broadcasting presence of clientId/' + client.id + 'to courts near them')
+              console.log('Broadcasting presence of clientId/' + socket.id + ' to courts near them')
               socket.broadcast.emit('increment_nearby_online_count', courtIds);
             }
           })
@@ -168,46 +165,51 @@ io.on('connection', (socket) => {
   })
   
   // When connected, keep an ear out for checkin messages and save the connected client
-  client.on('checkin', courtId =>{
-    console.log('checkin message from clientId/'+ client.id + ' received for courtId/' + courtId);
+  socket.on('checkin', courtId =>{
+    console.log('checkin message from clientId/'+ socket.id + ' received for courtId/' + courtId);
     console.log('checking client in...')
-    courtHelpers.checkinAnonymous(client.id, courtId)
+    courtHelpers.checkinAnonymous(socket.id, courtId)
       .then(checkins => {
-        console.log('Done checking clientId/' + client.id + ' into courtId/' + courtId);
+        console.log('Done checking clientId/' + socket.id + ' into courtId/' + courtId);
         console.log('checkedin message sent from server to client');
-        client.emit('checkedin', {courtId, checkins});
-        client.broadcast.emit('checkedin', {courtId, checkins})
+        socket.emit('checkedin', {courtId, checkins});
+        socket.broadcast.emit('checkedin', {courtId, checkins})
       })
       .catch(err =>{
         console.log('Failed to check user in');
         console.log(err);
-        client.emit('checkin-failed', {error: 'Failed to check user in'})
+        socket.emit('checkin-failed', {error: 'Failed to check user in'})
       })
   })
   
   // Keep an ear out for when clients disconnect so we can check them out
-  client.on('checkout', courtId =>{ 
+  socket.on('checkout', courtId =>{ 
     // Check clients out when we receive the checkout message
-    console.log('checkout message from clientId/'+ client.id + ' received for courtId/' + courtId);
+    console.log('checkout message from clientId/'+ socket.id + ' received for courtId/' + courtId);
     console.log('checking client out...')
-    courtHelpers.checkoutAnonymous(client.id, courtId)
+    courtHelpers.checkoutAnonymous(socket.id, courtId)
       .then(checkins => {
-        console.log('Done checking clientId/' + client.id + ' out of courtId/' + courtId);
+        console.log('Done checking clientId/' + socket.id + ' out of courtId/' + courtId);
         console.log('checkedout message sent from server to client');
-        client.emit('checkedout', {courtId, checkins});
-        client.broadcast.emit('checkedout', {courtId, checkins})
+        socket.emit('checkedout', {courtId, checkins});
+        socket.broadcast.emit('checkedout', {courtId, checkins})
       })
       .catch(err =>{
         console.log('Failed to check user out');
         console.log(err);
-        // client.emit('checkout-failed', {error: 'Failed to check user out'})
+        // socket.emit('checkout-failed', {error: 'Failed to check user out'})
       })
   })
+
+  // Keep an ear out for when clients send chat room messages and broadcast them to other clients
+  socket.on('chatroom-msg', message =>{
+    socket.broadcast.emit('new-chatroom-msg', message);
+  })
   
-  client.on('disconnect', () =>{ 
-    // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
-    console.log(`clientId/${client.id} disconnected.`)
-    courtHelpers.checkoutAnonymousOnDisconnect(client.id)
+  // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
+  socket.on('disconnect', () =>{ 
+    console.log(`clientId/${socket.id} disconnected.`)
+    courtHelpers.checkoutAnonymousOnDisconnect(socket.id)
       .then(courtInfo => {
           if (courtInfo !== null && courtInfo){
             const {courtId, checkins} = courtInfo;
@@ -215,7 +217,7 @@ io.on('connection', (socket) => {
             // Just broadcast the message to every other clients still online
             if (courtId && checkins){
               console.log('Broadcasting disconnected client checkout message')
-              client.broadcast.emit('checkedout', {courtId, checkins});
+              socket.broadcast.emit('checkedout', {courtId, checkins});
             } else{
               console.log('Client was not checked in')
             }
@@ -224,13 +226,13 @@ io.on('connection', (socket) => {
       .catch(err =>{
         console.log('Failed to check user out');
         console.log(err);
-        // client.emit('checkout-failed', {error: 'Failed to check user out'})
+        // socket.emit('checkout-failed', {error: 'Failed to check user out'})
       })
 
-    courtHelpers.decrementCourtsNearbyOnlineCounts(client.id).then(courtIds =>{
+    courtHelpers.decrementCourtsNearbyOnlineCounts(socket.id).then(courtIds =>{
       // If not courts were found near the client, no need to broadcast anything
       if (courtIds.length){
-        console.log('Broadcasting offline status of clientId/' + client.id + 'to courts near them')
+        console.log('Broadcasting offline status of clientId/' + socket.id + ' to courts near them')
         socket.broadcast.emit('decrement_nearby_online_count', courtIds);
       }
     })
