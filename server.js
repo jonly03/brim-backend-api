@@ -24,7 +24,7 @@ app.use(function(req, res, next) {
 });
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(express.json())
 
 const seedRoutes = require('./controllers/seeds');
 const apiRoutes = require('./controllers/api')
@@ -201,9 +201,14 @@ io.on('connection', (socket) => {
         // socket.emit('checkout-failed', {error: 'Failed to check user out'})
       })
   })
+
+  // Keep an ear out for when clients send chat room messages and broadcast them to other clients
+  socket.on('chatroom-msg', message =>{
+    socket.broadcast.emit('new-chatroom-msg', message);
+  })
   
+  // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
   socket.on('disconnect', () =>{ 
-    // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
     console.log(`clientId/${socket.id} disconnected.`)
     courtHelpers.checkoutAnonymousOnDisconnect(socket.id)
       .then(courtInfo => {
