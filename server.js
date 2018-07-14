@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const courtHelpers = require('./models/court/details/helpers');
 var Mixpanel = require('mixpanel');
 
