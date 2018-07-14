@@ -14,8 +14,7 @@ const PORT = process.env.PORT || 3001;
 // TODO only allow requests from hoopsgram.com
 app.use(function(req, res, next) {
   if (process.env.NODE_ENV === 'production'){
-    // res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
   }else{
     res.header("Access-Control-Allow-Origin", "*");
   }
