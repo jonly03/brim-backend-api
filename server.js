@@ -105,13 +105,13 @@ app.post('/checkout/:courtId', (req, res) =>{
 
 app.post('/track/:event', (req, res)=>{
   if (process.env.NODE_ENV === 'production'){
-    // non_supported_cities,successful_visits,went_to_court,checked_in
+    // non_supported_cities,successful_visits,went_to_court,checked_in, chatroom_msg
     console.log('Tracking...');
     
     const {event} = req.params;
     if (!req.body || !req.body.lat || !req.body.lng) return res.status(400).send();
     
-    if (event === 'non_supported_cities' || event === 'successful_visits' || event === 'went_to_court' || event === 'checked_in'){
+    if (event === 'non_supported_cities' || event === 'successful_visits' || event === 'went_to_court' || event === 'checked_in' || 'chatroom_msg'){
       courtHelpers.getLocDetails(req.body)
         .then(loc =>{
           if (loc && loc.city && loc.city.length){
