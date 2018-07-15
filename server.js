@@ -146,15 +146,15 @@ io.on('connection', (socket) => {
   socket.on('online', coords =>{
     console.log('clientId/' + socket.id + ' just came online');
 
-    // Request connected clients usernames
-    socket.broadcast.emit('get-username');
-    
     courtHelpers.isClientOnline(socket.id).then(clientOnline =>{
       if (clientOnline){
         console.log(`ClientId/${socket.id} is already online. No need to update anything right now. Just chilling...`)
       }
       else{
         console.log(`ClientId/${socket.id} wasn't already online.`)
+
+        // Request connected clients usernames to let this client know which username are already taken
+        socket.broadcast.emit('get-username');
 
         courtHelpers.incrementCourtsNearbyOnlineCounts(socket.id,coords)
           .then(courtIds =>{
