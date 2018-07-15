@@ -14,7 +14,8 @@ const PORT = process.env.PORT || 3001;
 // TODO only allow requests from hoopsgram.com
 app.use(function(req, res, next) {
   if (process.env.NODE_ENV === 'production'){
-    res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
+    // res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
+    res.header("Access-Control-Allow-Origin", "*");
   }else{
     res.header("Access-Control-Allow-Origin", "*");
   }
@@ -142,7 +143,7 @@ io.on('connection', (socket) => {
   
   console.log('clientID/' + socket.id + ' connected')
 
-  // When we get an 'online' msg with client coords, get nearbycourts to notify to increment their nearby online count
+  // When we get an 'online' msg with client coords, notify nearbycourts to increment their nearby online count
   socket.on('online', coords =>{
     console.log('clientId/' + socket.id + ' just came online');
     
@@ -152,6 +153,7 @@ io.on('connection', (socket) => {
       }
       else{
         console.log(`ClientId/${socket.id} wasn't already online.`)
+
         courtHelpers.incrementCourtsNearbyOnlineCounts(socket.id,coords)
           .then(courtIds =>{
             // If not courts were found near the client, no need to broadcast anything
@@ -201,7 +203,7 @@ io.on('connection', (socket) => {
       })
   })
 
-  // Keep an ear out for when clients send chat room messages and broadcast them to other clients
+  // Keep an ear out for when clients send chat room messages and broadcast them to other clients in the same room
   socket.on('chatroom-msg', message =>{
     socket.broadcast.emit('new-chatroom-msg', message);
   })

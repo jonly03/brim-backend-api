@@ -39,7 +39,7 @@ Router.get('/courts/latLng/:lat/:lng', function(req, res){
     let {lat, lng} = req.params;
     
     // Only get courts from our DB
-    courtHelpers.tryGettingNearbyCourtsMongoDB({lat: Number(lat), lng:Number(lng)})
+    courtHelpers.getNearbyCourts({lat: Number(lat), lng:Number(lng)})
         .then(courtsRes =>{
             console.log("Done getting nearby courts.");
             console.log("Getting court photos...");

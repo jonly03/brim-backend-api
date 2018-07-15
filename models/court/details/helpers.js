@@ -597,7 +597,7 @@ function decrementCourtsNearbyOnlineCounts(clientId){
 module.exports = {
     getLocDetails,
     // tryGettingNearbyCourtsFirestore,
-    tryGettingNearbyCourtsMongoDB,
+    getNearbyCourts: tryGettingNearbyCourtsMongoDB,
     checkinAnonymous,
     checkoutAnonymous,
 	checkoutAnonymousOnDisconnect,
