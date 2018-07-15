@@ -146,6 +146,9 @@ io.on('connection', (socket) => {
   // When we get an 'online' msg with client coords, notify nearbycourts to increment their nearby online count
   socket.on('online', coords =>{
     console.log('clientId/' + socket.id + ' just came online');
+
+    // Request connected clients usernames
+    socket.broadcast.emit('get-username');
     
     courtHelpers.isClientOnline(socket.id).then(clientOnline =>{
       if (clientOnline){
