@@ -207,6 +207,11 @@ io.on('connection', (socket) => {
   socket.on('chatroom-msg', message =>{
     socket.broadcast.emit('new-chatroom-msg', message);
   })
+
+  // Keep an ear out for new usernames and broadcast them to all listening clients so that other people don't use them
+  socket.on('username', username =>{
+    socket.broadcast.emit('new-username', username);
+  })
   
   // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
   socket.on('disconnect', () =>{ 
