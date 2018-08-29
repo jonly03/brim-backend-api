@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3001;
 // TODO only allow requests from hoopsgram.com
 app.use(function(req, res, next) {
   if (process.env.NODE_ENV === 'production'){
-    res.header("Access-Control-Allow-Origin", "https://hoopsgram.herokuapp.com");
+    res.header("Access-Control-Allow-Origin", "https://iballup.herokuapp.com");
   }else{
     res.header("Access-Control-Allow-Origin", "*");
   }
@@ -208,6 +208,11 @@ io.on('connection', (socket) => {
   // Keep an ear out for when clients send chat room messages and broadcast them to other clients in the same room
   socket.on('chatroom-msg', message =>{
     socket.broadcast.emit('new-chatroom-msg', message);
+  })
+
+  // Keep an ear out for when clients are typing
+  socket.on('typing', ()=>{
+    socket.broadcast.emit('others-typing');
   })
 
   // Keep an ear out for new usernames and broadcast them to all listening clients so that other people don't use them
