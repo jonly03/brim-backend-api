@@ -156,7 +156,7 @@ function uploadPlaceholderPhoto(url, id, photographerUsername, photograherName){
 			public_id,
 			overwrite: true
 		}
-
+    console.log(`${photograherName} => ${photographerUsername} => ${url}`);
 		cloudinary.uploader.upload(url, function (result){
 			console.log('Successfully saved photo to cloudinary...')
 			if (!result){
