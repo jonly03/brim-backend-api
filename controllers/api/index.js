@@ -91,4 +91,27 @@ Router.get('/courts/latLng/:lat/:lng', function(req, res){
         })
 })
 
+// ballUp+ API Routes
+Router.get('/plus/courts', (req, res)=>{
+    courtHelpers.getAllCourts()
+        .then(courts =>{
+            // Package them by city
+            console.log(courts.length)
+            let courtsByCity = {};
+            courts.map(court =>{
+                if (!courtsByCity[court.city]){
+                    courtsByCity[court.city] = [court];
+                }else{
+                    courtsByCity[court.city].push(court);
+                }
+            })
+            
+            return res.send(courtsByCity);
+        })
+        .catch(err=>{
+            console.log("Failed to get all courts");
+            return res.send({});
+        })
+})
+
 module.exports = Router;
