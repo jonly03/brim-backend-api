@@ -106,11 +106,12 @@ Router.get('/plus/courts', (req, res) => {
                     .then(photos => {
                         let courts = {};
                         courts.total = courtsRes.length;
-                        courts.photoCount = photos.length;
+                        courts.photoCount = 0;
 
                         courtsRes.forEach((court, idx) => {
                             if (photos[idx].length) {
                                 court.photos = photos[idx];
+                                courts.photoCount++;
                             } else {
                                 court.photos = [];
                             }
