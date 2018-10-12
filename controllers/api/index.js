@@ -125,7 +125,7 @@ Router.get('/plus/courts', (req, res) => {
                                 courtsByCityObj[court.city].push(court);
                             }
                         })
-                        courts.citiesCount = Object.keys(courtsByCityObj).length;
+                        courts.cityCount = Object.keys(courtsByCityObj).length;
 
                         let courtsByCityArr = []
                         for (const city in courtsByCityObj) {
@@ -142,6 +142,7 @@ Router.get('/plus/courts', (req, res) => {
                         })
                         courts.countryCount = Object.keys(courtsBycountryCountObj).length;
                         courts.courtsByCity = courtsByCityArr;
+
                         return res.status(200).json(courts);
                     })
                     .catch(err => {
