@@ -9,7 +9,7 @@ const Router = express.Router();
 
 // Router.get('/courts/unsplash', (req, res) =>{
 //     Helpers.getUnsplashPhotos().then(unsplashPhotos =>{
-        
+
 //         res.status(200).json(unsplashPhotos)
 //         CourtsDB.saveUnsplashPhotos(unsplashPhotos)
 //         .then(res => {
@@ -25,7 +25,7 @@ const Router = express.Router();
 // Router.get('/courts/city/:city', function(req, res){
 //     Helpers.getCourts('city', req.params.city).then(courts => {
 //         res.status(200).json(courts);
-        
+
 //         CourtsDB.save(courts).then(res => {
 //             // console.log(res.length);
 //             // console.log(res);
@@ -35,43 +35,43 @@ const Router = express.Router();
 //     })
 // })
 
-Router.get('/courts/latLng/:lat/:lng', function(req, res){
-    let {lat, lng} = req.params;
-    
+Router.get('/courts/latLng/:lat/:lng', function (req, res) {
+    let { lat, lng } = req.params;
+
     // Only get courts from our DB
-    courtHelpers.getNearbyCourts({lat: Number(lat), lng:Number(lng)})
-        .then(courtsRes =>{
+    courtHelpers.getNearbyCourts({ lat: Number(lat), lng: Number(lng) })
+        .then(courtsRes => {
             console.log("Done getting nearby courts.");
             console.log("Getting court photos...");
             // courtsRes = {dist: courts:[]}
             let getCourtPhotos = courtsRes.courts.map(court => {
                 return courtPhotosHelpers.real.getCourtPhotos(court._id);
             })
-            
+
             // Get placeholder photos to pic random photos from for courts with no uploaded pictures
             let getCourtPlaceholderPhotos = courtPhotosHelpers.placeholder.getPlaceholderPhotos();
-            
-            try{
+
+            try {
                 Promise.all([...getCourtPhotos, getCourtPlaceholderPhotos])
-                    .then(results =>{
+                    .then(results => {
                         console.log("Done getting court photos and placeholder photos.");
                         console.log("Packaging it all up...");
-                        
+
                         let placeholderPhotos = results[results.length - 1];
-                        let photos = results.slice(0, results.length-1);;
-                        
+                        let photos = results.slice(0, results.length - 1);;
+
                         // Add court photos when we have some and add placeholders for courts with no photos
                         // We have a 1:1 courts to photos array
                         // So same idx in courts maps to the same idx in photos
-                        courtsRes.courts.forEach((court, idx) =>{
-                            if (photos[idx].length){
+                        courtsRes.courts.forEach((court, idx) => {
+                            if (photos[idx].length) {
                                 court.photos = photos[idx];
                             }
-                            else{
+                            else {
                                 court.photos = [helpers.getRandomItem(placeholderPhotos)]
                             }
                         })
-                        
+
                         console.log("Done packaging it all up");
                         res.status(200).json(courtsRes);
                     })
@@ -80,35 +80,62 @@ Router.get('/courts/latLng/:lat/:lng', function(req, res){
                         res.status(500).json(err);
                     })
             }
-            catch(err){
+            catch (err) {
                 console.log(err);
                 res.status(500).json(err);
             }
         })
-        .catch(err =>{
+        .catch(err => {
             console.log(err);
             res.status(500).json(err);
         })
 })
 
 // ballUp+ API Routes
-Router.get('/plus/courts', (req, res)=>{
+Router.get('/plus/courts', (req, res) => {
+    // Gets all courts with their photos
     courtHelpers.getAllCourts()
-        .then(courts =>{
-            // Package them by city
-            console.log(courts.length)
-            let courtsByCity = {};
-            courts.map(court =>{
-                if (!courtsByCity[court.city]){
-                    courtsByCity[court.city] = [court];
-                }else{
-                    courtsByCity[court.city].push(court);
-                }
+        .then(courtsRes => {
+
+            let getCourtPhotos = courtsRes.map(court => {
+                return courtPhotosHelpers.real.getCourtPhotos(court._id);
             })
-            
-            return res.send(courtsByCity);
+
+            try {
+                Promise.all(getCourtPhotos)
+                    .then(photos => {
+                        courtsRes.forEach((court, idx) => {
+                            if (photos[idx].length) {
+                                court.photos = photos[idx];
+                            } else {
+                                court.photos = [];
+                            }
+                        })
+
+                        // Package them by city
+                        console.log(courtsRes.length)
+                        let courtsByCity = {};
+                        courtsRes.map(court => {
+                            if (!courtsByCity[court.city]) {
+                                courtsByCity[court.city] = [court];
+                            } else {
+                                courtsByCity[court.city].push(court);
+                            }
+                        })
+
+                        return res.status(200).json(courtsByCity);
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        res.status(500).json(err);
+                    })
+            }
+            catch (err) {
+                console.log(err);
+                res.status(500).json(err);
+            }
         })
-        .catch(err=>{
+        .catch(err => {
             console.log("Failed to get all courts");
             return res.send({});
         })
