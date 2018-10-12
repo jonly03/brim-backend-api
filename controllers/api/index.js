@@ -114,16 +114,19 @@ Router.get('/plus/courts', (req, res) => {
 
                         // Package them by city
                         console.log(courtsRes.length)
-                        let courtsByCity = [];
+                        let courtsByCityObj = {};
                         courtsRes.map(court => {
-                            let courtsInCity = {}
-                            if (!courtsInCity[court.city]) {
-                                courtsInCity[court.city] = [court];
+                            if (!courtsByCityObj[court.city]) {
+                                courtsByCityObj[court.city] = [court];
                             } else {
-                                courtsInCity[court.city].push(court);
+                                courtsByCityObj[court.city].push(court);
                             }
-                            courtsByCity.push(courtsInCity);
                         })
+
+                        let courtsByCityArr = []
+                        for (const city in courtsByCityObj) {
+                            courtsByCityArr.push({ [city]: courtsByCityObj[city] })
+                        }
 
                         return res.status(200).json(courtsByCity);
                     })
