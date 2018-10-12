@@ -128,7 +128,7 @@ Router.get('/plus/courts', (req, res) => {
                             courtsByCityArr.push({ [city]: courtsByCityObj[city] })
                         }
 
-                        return res.status(200).json(courtsByCity);
+                        return res.status(200).json(courtsByCityArr);
                     })
                     .catch(err => {
                         console.log(err);
