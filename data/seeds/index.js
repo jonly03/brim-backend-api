@@ -160,6 +160,10 @@ let courts = {
          boston_ma: {
             lat: 42.361145,
             lng: -71.057083
+            
+            // Watertown, MA
+            // lat: 42.363703,
+            // lng: -71.189343
         },
         // 27 Raleigh => 107.93688499999999
         raleigh_nc: {
@@ -516,7 +520,7 @@ let courts = {
             lat: 36.0999,
             lng: -80.2442
         },
-        //  Fayeteville (97 to support Dan for testing)
+        //  Fayeteville (98 to support Dan for testing)
         fayeteville_ak:{
             lat: 36.081339,
             lng: -94.174614

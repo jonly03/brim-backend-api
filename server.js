@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3001;
 app.use(function (req, res, next) {
   if (process.env.NODE_ENV === 'production') {
     // res.header("Access-Control-Allow-Origin", "https://iballup.herokuapp.com");
-    res.header("Access-Control-Allow-Origin", "*"); // Open the API for KOCupid for now
+    res.header("Access-Control-Allow-Origin", "*"); // Open API to KOCupid app for now until they have a deployed app
   } else {
     res.header("Access-Control-Allow-Origin", "*");
   }

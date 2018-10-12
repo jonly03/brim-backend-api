@@ -18,7 +18,7 @@ Router.get('/courts-info', (req, res) =>{
 
 	const _IN_TESTING_MODE_ = true;
 
-	const city = Object.keys(courts)[48];
+	const city = Object.keys(courts)[0];
 	if (!city) {
 		console.log(city);
 		return res.status(404).json({msg: 'No courts found'});
