@@ -131,6 +131,9 @@ Router.get('/plus/courts', (req, res) => {
                         let courtsByCityArr = []
                         for (const city in courtsByCityObj) {
                             courtsByCityArr.push({ [city]: courtsByCityObj[city] })
+                            courtsByCityArr.sort((court1, court2) => {
+                                return Object.keys(court1)[0] > Object.keys(court2)[0];
+                            })
                         }
 
                         let courtsBycountryCountObj = {};
