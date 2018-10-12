@@ -104,6 +104,10 @@ Router.get('/plus/courts', (req, res) => {
             try {
                 Promise.all(getCourtPhotos)
                     .then(photos => {
+                        let courts = {};
+                        courts.total = courtsRes.length;
+                        courts.photoCount = photos.length;
+
                         courtsRes.forEach((court, idx) => {
                             if (photos[idx].length) {
                                 court.photos = photos[idx];
@@ -113,7 +117,6 @@ Router.get('/plus/courts', (req, res) => {
                         })
 
                         // Package them by city
-                        console.log(courtsRes.length)
                         let courtsByCityObj = {};
                         courtsRes.map(court => {
                             if (!courtsByCityObj[court.city]) {
@@ -122,13 +125,24 @@ Router.get('/plus/courts', (req, res) => {
                                 courtsByCityObj[court.city].push(court);
                             }
                         })
+                        courts.citiesCount = Object.keys(courtsByCityObj).length;
 
                         let courtsByCityArr = []
                         for (const city in courtsByCityObj) {
                             courtsByCityArr.push({ [city]: courtsByCityObj[city] })
                         }
 
-                        return res.status(200).json(courtsByCityArr);
+                        let courtsBycountryCountObj = {};
+                        courtsRes.map(court => {
+                            if (!courtsBycountryCountObj[court.country]) {
+                                courtsBycountryCountObj[court.country] = 0;
+                            } else {
+                                courtsBycountryCountObj[court.country]++;
+                            }
+                        })
+                        courts.countryCount = Object.keys(courtsBycountryCountObj).length;
+                        courts.courtsByCity = courtsByCityArr;
+                        return res.status(200).json(courts);
                     })
                     .catch(err => {
                         console.log(err);
