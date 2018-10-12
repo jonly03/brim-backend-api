@@ -155,6 +155,19 @@ function getCourtsNearByMongoDB(latLng, radius) {
     })
 }
 
+function getAllCourts(){
+	return new Promise((resolve, reject)=>{
+		mongoDBCourtsRef.find({}, (err, courts)=>{
+			if (err){
+				reject (err)
+			}
+	
+			resolve(courts);
+		})
+	})
+	
+}
+
 // function getCourtsNearByFirestore(latLng, radius) {
 // 	// TODO: Handle pagination
 // 	// Get data in batches
@@ -597,7 +610,8 @@ function decrementCourtsNearbyOnlineCounts(clientId){
 module.exports = {
     getLocDetails,
     // tryGettingNearbyCourtsFirestore,
-    getNearbyCourts: tryGettingNearbyCourtsMongoDB,
+	getNearbyCourts: tryGettingNearbyCourtsMongoDB,
+	getAllCourts,
     checkinAnonymous,
     checkoutAnonymous,
 	checkoutAnonymousOnDisconnect,
