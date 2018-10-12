@@ -114,13 +114,15 @@ Router.get('/plus/courts', (req, res) => {
 
                         // Package them by city
                         console.log(courtsRes.length)
-                        let courtsByCity = {};
+                        let courtsByCity = [];
                         courtsRes.map(court => {
-                            if (!courtsByCity[court.city]) {
-                                courtsByCity[court.city] = [court];
+                            let courtsInCity = {}
+                            if (!courtsInCity[court.city]) {
+                                courtsInCity[court.city] = [court];
                             } else {
-                                courtsByCity[court.city].push(court);
+                                courtsInCity[court.city].push(court);
                             }
+                            courtsByCity.push(courtsInCity);
                         })
 
                         return res.status(200).json(courtsByCity);
