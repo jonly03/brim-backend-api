@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3001;
 app.use(function (req, res, next) {
   if (process.env.NODE_ENV === 'production') {
     var allowedOrigins = ['https://iballup.herokuapp.com/', 'https://ballupplus.herokuapp.com/', 'https://kocupid.herokuapp.com/']
-    var origin = req.header.origin;
+    var origin = req.headers.origin;
 
     console.log(`REQUEST HEADER: ${origin}`);
     console.log(`ALLOWED ORIGINS:`);
@@ -24,7 +24,7 @@ app.use(function (req, res, next) {
     if (allowedOrigins.indexOf(origin) > -1) {
       res.header("Access-Control-Allow-Origin", origin);
       console.log("AFTER SETTING THE ORIGIN HEADER TO BE ALLOWED");
-      console.log(res.header);
+      console.log(res.headers);
     }
 
     // Wide open for anyone just in testing. Remember to close it off
