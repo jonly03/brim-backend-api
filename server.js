@@ -14,14 +14,15 @@ const PORT = process.env.PORT || 3001;
 // TODO only allow requests from hoopsgram.com
 app.use(function (req, res, next) {
   if (process.env.NODE_ENV === 'production') {
-    var allowedOrigins = ['https://iballup.herokuapp.com', 'https://ballupplus.herokuapp.com/']
+    var allowedOrigins = ['https://iballup.herokuapp.com', 'https://ballupplus.herokuapp.com/', 'https://kocupid.herokuapp.com/']
     var origin = req.header.origin;
 
     if (allowedOrigins.indexOf(origin) > -1) {
-      // res.header("Access-Control-Allow-Origin", origin);
+      res.header("Access-Control-Allow-Origin", origin);
     }
 
-    res.header("Access-Control-Allow-Origin", "*"); // Open API to KOCupid app for now until they have a deployed app
+    // Wide open for anyone just in testing. Remember to close it off
+    // res.header("Access-Control-Allow-Origin", "*"); 
   } else {
     res.header("Access-Control-Allow-Origin", "*");
   }
