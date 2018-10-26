@@ -14,17 +14,11 @@ const PORT = process.env.PORT || 3001;
 // TODO only allow requests from hoopsgram.com
 app.use(function (req, res, next) {
   if (process.env.NODE_ENV === 'production') {
-    var allowedOrigins = ['https://iballup.herokuapp.com/', 'https://ballupplus.herokuapp.com/', 'https://kocupid.herokuapp.com/']
+    var allowedOrigins = ['https://iballup.herokuapp.com', 'https://ballupplus.herokuapp.com', 'https://kocupid.herokuapp.com']
     var origin = req.headers.origin;
-
-    console.log(`REQUEST HEADER: ${origin}`);
-    console.log(`ALLOWED ORIGINS:`);
-    console.log(allowedOrigins);
 
     if (allowedOrigins.indexOf(origin) > -1) {
       res.header("Access-Control-Allow-Origin", origin);
-      console.log("AFTER SETTING THE ORIGIN HEADER TO BE ALLOWED");
-      console.log(res.headers);
     }
 
     // Wide open for anyone just in testing. Remember to close it off
@@ -33,8 +27,7 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
   }
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  console.log("AFTER SETTING OTHER HEADERS");
-  console.log(res.header);
+
   next();
 });
 
