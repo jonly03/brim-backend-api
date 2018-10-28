@@ -91,6 +91,15 @@ Router.get('/courts/latLng/:lat/:lng', function (req, res) {
         })
 })
 
+Router.get('/courts/:id', (req, res) => {
+    courtHelpers.getOneCourt(req.params.id)
+        .then(court => res.json(court))
+        .catch(err => {
+            console.log(err);
+            res.status(404).json({ err })
+        })
+})
+
 // ballUp+ API Routes
 Router.get('/plus/courtsByCity', (req, res) => {
     // Gets all courts with their photos
