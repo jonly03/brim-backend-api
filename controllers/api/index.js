@@ -92,7 +92,7 @@ Router.get('/courts/latLng/:lat/:lng', function (req, res) {
 })
 
 // ballUp+ API Routes
-Router.get('/plus/courts', (req, res) => {
+Router.get('/plus/courtsByCity', (req, res) => {
     // Gets all courts with their photos
     courtHelpers.getAllCourts()
         .then(courtsRes => {
@@ -143,6 +143,52 @@ Router.get('/plus/courts', (req, res) => {
                         })
                         courts.countryCount = Object.keys(courtsBycountryCountObj).length;
                         courts.courtsByCity = courtsByCityArr;
+
+                        return res.status(200).json(courts);
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        res.status(500).json(err);
+                    })
+            }
+            catch (err) {
+                console.log(err);
+                res.status(500).json(err);
+            }
+        })
+        .catch(err => {
+            console.log("Failed to get all courts");
+            return res.send({});
+        })
+})
+
+Router.get('/plus/courtsById', (req, res) => {
+    // Gets all courts with their photos
+    courtHelpers.getAllCourts()
+        .then(courtsRes => {
+
+            let getCourtPhotos = courtsRes.map(court => {
+                return courtPhotosHelpers.real.getCourtPhotos(court._id);
+            })
+
+            try {
+                Promise.all(getCourtPhotos)
+                    .then(photos => {
+                        let courts = {};
+                        courtsRes.forEach((court, idx) => {
+                            if (photos[idx].length) {
+                                court.photos = photos[idx];
+                                courts.photoCount++;
+                            } else {
+                                court.photos = [];
+                            }
+                        })
+
+                        // Package them by id
+                        let courtsByIdObj = {};
+                        courtsRes.map(court => courtsByIdObj[court._id] = [court])
+
+                        courts.courtsById = courtsByIdObj;
 
                         return res.status(200).json(courts);
                     })
