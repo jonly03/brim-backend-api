@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3001;
 // TODO only allow requests from hoopsgram.com
 app.use(function (req, res, next) {
   if (process.env.NODE_ENV === 'production') {
-    var allowedOrigins = ['https://iballup.herokuapp.com', 'https://ballupplus.herokuapp.com', 'https://kocupid.herokuapp.com']
+    var allowedOrigins = ['https://iballup.herokuapp.com', 'http://iballup.herokuapp.com', 'https://ballupplus.herokuapp.com', 'http://ballupplus.herokuapp.com', 'https://kocupid.herokuapp.com', 'http://kocupid.herokuapp.com']
     var origin = req.headers.origin;
 
     if (allowedOrigins.indexOf(origin) > -1) {
