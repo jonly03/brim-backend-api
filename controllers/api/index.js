@@ -93,11 +93,22 @@ Router.get('/courts/latLng/:lat/:lng', function (req, res) {
 
 Router.get('/courts/:id', (req, res) => {
     courtHelpers.getOneCourt(req.params.id)
-        .then(court => res.json(court))
+        .then(courts => {
+            courtPhotosHelpers.real.getCourtPhotos(courts[0]._id)
+                .then(photos => {
+                    courts[0].photos = photos.length ? photos : [];
+                    res.json(courts[0])
+                })
+                .catch(err => {
+                    console.log(err);
+                    res.status(500).json(err);
+                })
+        })
         .catch(err => {
             console.log(err);
             res.status(404).json({ err })
         })
+
 })
 
 // ballUp+ API Routes
