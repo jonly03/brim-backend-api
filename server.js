@@ -315,11 +315,17 @@ io.on("connection", socket => {
 
   // Keep an ear out for when new clients want to know taken usernames
   socket.on("get_taken_usernames", () => {
+    console.log("New user about to pick a username...");
+    console.log(
+      "Sending message to all clients with usernames to tell us what they are..."
+    );
     socket.broadcast.emit("get_taken_username");
   });
 
   // Broadcast to other clients the taken username
   socket.on("taken_username", username => {
-    socket.broadcast.emit("taken_username", username);
+    console.log("Connected clients sending us their taken usernames");
+    console.log(username, " username is taken");
+    socket.broadcast.emit("taken_usernames", username);
   });
 });
