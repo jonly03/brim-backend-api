@@ -276,6 +276,16 @@ io.on("connection", socket => {
     socket.broadcast.emit("others_stopped_typing", courtInfo);
   });
 
+  // Keep an ear out for clients who want to get a history of a chatroom messages history
+  socket.on("get_chatroom_messages_for_court", ({ courtId }) => {
+    socket.broadcast.emit("send_chatroom_messages", { courtId });
+  });
+
+  // Keep an ear out for clients sending their chatroom messages history
+  socket.on("chatroom_messages", history => {
+    socket.broadcast.emit("chatroom_messages_history", history);
+  });
+
   // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
   socket.on("disconnect", () => {
     console.log(`clientId/${socket.id} disconnected.`);
