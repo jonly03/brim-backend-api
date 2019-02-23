@@ -135,7 +135,14 @@ Router.get("/push", (req, res) => {
 
   db.pushNotifications
     .getUserToken({ username })
-    .then(token => res.json({ token }))
+    .then(token => {
+      if (!token)
+        return res
+          .status(404)
+          .json({ details: `${username} has no token in db` });
+
+      return res.json({ token });
+    })
     .catch(error => res.status(404).json({ error }));
 });
 

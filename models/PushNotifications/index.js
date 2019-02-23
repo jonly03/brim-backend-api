@@ -27,6 +27,10 @@ getUserToken = ({ username }) => {
         return reject(err);
       }
 
+      if (!doc) {
+        return resolve();
+      }
+
       return resolve({ token: doc.token });
     });
   });
