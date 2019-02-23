@@ -126,7 +126,7 @@ Router.post("/push", (req, res) => {
     .catch(error => res.status(404).json({ error }));
 });
 
-Router.get("/push", (req, res) => {
+Router.get("/push/:username", (req, res) => {
   const { username } = req.params;
 
   if (!username) {
