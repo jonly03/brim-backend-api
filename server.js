@@ -267,14 +267,14 @@ io.on("connection", socket => {
   });
 
   // Keep an ear out for when clients are typing
-  socket.on("typing", () => {
-    socket.broadcast.emit("others-typing");
+  socket.on("someone_is_typing", courtInfo => {
+    socket.broadcast.emit("others_typing", courtInfo);
   });
 
-  // Keep an ear out for new usernames and broadcast them to all listening clients so that other people don't use them
-  // socket.on('username', username => {
-  //   socket.broadcast.emit('new-username', username);
-  // })
+  // Keep an ear out for when clients stopped typing
+  socket.on("someone_stopped_typing", courtInfo => {
+    socket.broadcast.emit("others_stopped_typing", courtInfo);
+  });
 
   // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
   socket.on("disconnect", () => {
