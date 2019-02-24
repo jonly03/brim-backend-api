@@ -1,7 +1,7 @@
 const courtModel = require("./court");
-const pushModel = require("./PushNotifications");
+// const pushModel = require("./PushNotifications");
 
 module.exports = {
-  courts: courtModel,
-  pushNotifications: pushModel
+  courts: courtModel
+  //   pushNotifications: pushModel
 };

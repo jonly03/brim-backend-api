@@ -4,7 +4,7 @@ const helpers = require("./helpers");
 const courtHelpers = require("../../models/court/details/helpers");
 const courtPhotosHelpers = require("../../models/court/photos");
 // const db = require('../../models/Firestore').firestore;
-const db = require("../../models");
+// const db = require("../../models");
 
 const Router = express.Router();
 
@@ -113,38 +113,38 @@ Router.get("/courts/:id", (req, res) => {
 });
 
 // Push Notification routes
-Router.post("/push", (req, res) => {
-  const { username, token } = req.body;
+// Router.post("/push", (req, res) => {
+//   const { username, token } = req.body;
 
-  if (!username || !token) {
-    return res.json({ error: "username and token are required payloads" });
-  }
+//   if (!username || !token) {
+//     return res.json({ error: "username and token are required payloads" });
+//   }
 
-  db.pushNotifications
-    .saveUserToken({ username, token })
-    .then(() => res.status(200).send())
-    .catch(error => res.status(404).json({ error }));
-});
+//   db.pushNotifications
+//     .saveUserToken({ username, token })
+//     .then(success => res.status(200).json({ success }))
+//     .catch(error => res.status(404).json({ error }));
+// });
 
-Router.get("/push/:username", (req, res) => {
-  const { username } = req.params;
+// Router.get("/push/:username", (req, res) => {
+//   const { username } = req.params;
 
-  if (!username) {
-    return res.json({ error: "username is a required parameter" });
-  }
+//   if (!username) {
+//     return res.json({ error: "username is a required parameter" });
+//   }
 
-  db.pushNotifications
-    .getUserToken({ username })
-    .then(token => {
-      if (!token)
-        return res
-          .status(404)
-          .json({ details: `${username} has no token in db` });
+//   db.pushNotifications
+//     .getUserToken({ username })
+//     .then(token => {
+//       if (!token)
+//         return res
+//           .status(404)
+//           .json({ details: `${username} has no token in db` });
 
-      return res.json({ token });
-    })
-    .catch(error => res.status(404).json({ error }));
-});
+//       return res.json({ token });
+//     })
+//     .catch(error => res.status(404).json({ error }));
+// });
 
 // ballUp+ API Routes
 Router.get("/plus/courtsByCity", (req, res) => {
