@@ -1,7 +1,11 @@
 require("dotenv").config();
 const express = require("express");
 const courtHelpers = require("./models/court/details/helpers");
+const { Expo } = require("expo-server-sdk");
 var Mixpanel = require("mixpanel");
+
+// Create a new Expo SDK client
+let expo = new Expo();
 
 var mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
   protocol: "https"
@@ -18,9 +22,9 @@ app.use(function(req, res, next) {
       "https://iballup.herokuapp.com",
       "http://iballup.herokuapp.com",
       "https://ballupplus.herokuapp.com",
-      "http://ballupplus.herokuapp.com",
-      "https://kocupid.herokuapp.com",
-      "http://kocupid.herokuapp.com"
+      "http://ballupplus.herokuapp.com"
+      // "https://kocupid.herokuapp.com",
+      // "http://kocupid.herokuapp.com"
     ];
     var origin = req.headers.origin;
 
@@ -263,8 +267,13 @@ io.on("connection", socket => {
 
   // Keep an ear out for when clients send chat room messages and broadcast them to other clients in the same room
   socket.on("chatroom-msg", message => {
+    // When we get a new chatroom msg, ask all of other clients near this court to send us their usernames
+    socket.broadcast.emit("send_username_if_nearby", message);
     socket.broadcast.emit("new-chatroom-msg", message);
   });
+
+  // Keep an ear out for when clients send us their usernames on a new chatroom message
+  socket.on("chatroom_msg_with_nearby_username", message => {});
 
   // Keep an ear out for when clients are typing
   socket.on("someone_is_typing", courtInfo => {

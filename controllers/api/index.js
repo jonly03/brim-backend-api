@@ -4,7 +4,7 @@ const helpers = require("./helpers");
 const courtHelpers = require("../../models/court/details/helpers");
 const courtPhotosHelpers = require("../../models/court/photos");
 // const db = require('../../models/Firestore').firestore;
-// const db = require("../../models");
+const users = require("../../models").users;
 
 const Router = express.Router();
 
@@ -46,7 +46,7 @@ Router.get("/courts/latLng/:lat/:lng", function(req, res) {
       console.log("Done getting nearby courts.");
       console.log("Getting court photos...");
       // courtsRes = {dist: courts:[]}
-      let getCourtPhotos = courtsRes.courts.map(court => {
+      let getCourtPhotos = courtsRes.docs.map(court => {
         return courtPhotosHelpers.real.getCourtPhotos(court._id);
       });
 
@@ -65,7 +65,7 @@ Router.get("/courts/latLng/:lat/:lng", function(req, res) {
             // Add court photos when we have some and add placeholders for courts with no photos
             // We have a 1:1 courts to photos array
             // So same idx in courts maps to the same idx in photos
-            courtsRes.courts.forEach((court, idx) => {
+            courtsRes.docs.forEach((court, idx) => {
               if (photos[idx].length) {
                 court.photos = photos[idx];
               } else {
@@ -112,19 +112,62 @@ Router.get("/courts/:id", (req, res) => {
     });
 });
 
-// Push Notification routes
-// Router.post("/push", (req, res) => {
-//   const { username, token } = req.body;
+// Users routes
+Router.post("/users", (req, res) => {
+  const { username, token, location } = req.body;
 
-//   if (!username || !token) {
-//     return res.json({ error: "username and token are required payloads" });
-//   }
+  if (!username || !token || !location || !location.lat || !location.lng) {
+    return res.json({
+      error: "username, token, lat, and lng are required payloads"
+    });
+  }
 
-//   db.pushNotifications
-//     .saveUserToken({ username, token })
-//     .then(success => res.status(200).json({ success }))
-//     .catch(error => res.status(404).json({ error }));
-// });
+  let { lat, lng } = location;
+  lat = Number(lat);
+  lng = Number(lng);
+
+  users
+    .save({ username, token, lat, lng })
+    .then(success => res.status(200).json(success))
+    .catch(error => res.status(404).json(error));
+});
+
+Router.post("/users/location", (req, res) => {
+  const { username, location } = req.body;
+
+  if (!username || !location || !location.lat || !location.lng) {
+    return res.json({
+      error: "username, token, lat, and lng are required payloads"
+    });
+  }
+
+  let { lat, lng } = location;
+  lat = Number(lat);
+  lng = Number(lng);
+
+  users
+    .updateLocation({ username, lat, lng })
+    .then(success => res.status(200).json(success))
+    .catch(error => res.status(404).json(error));
+});
+
+Router.get("/users/near/:lat/:lng", (req, res) => {
+  let { lat, lng } = req.params;
+
+  if (!lat || !lng) {
+    return res.json({
+      error: "lat and lng are required query parameters"
+    });
+  }
+
+  lat = Number(lat);
+  lng = Number(lng);
+
+  users
+    .getUsersNearAPoint({ latLng: { lat, lng } })
+    .then(users => res.status(200).json(users))
+    .catch(error => res.status(404).json(error));
+});
 
 // Router.get("/push/:username", (req, res) => {
 //   const { username } = req.params;
