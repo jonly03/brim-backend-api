@@ -151,6 +151,7 @@ Router.post("/users/location", (req, res) => {
     .catch(error => res.status(404).json(error));
 });
 
+// TODO: move this functionality in the socket
 Router.get("/users/near/:lat/:lng", (req, res) => {
   let { lat, lng } = req.params;
 
@@ -166,6 +167,21 @@ Router.get("/users/near/:lat/:lng", (req, res) => {
   users
     .getUsersNearAPoint({ latLng: { lat, lng } })
     .then(users => res.status(200).json(users))
+    .catch(error => res.status(404).json(error));
+});
+
+Router.delete("/users/:username", (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    return res.json({
+      error: "username is a required request parameter"
+    });
+  }
+
+  users
+    .remove({ username })
+    .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
 });
 
