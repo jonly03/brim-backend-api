@@ -26,13 +26,12 @@ const save = ({ username, token, lat, lng }) => {
 const updateLocation = ({ username, lat, lng }) => {
   return new Promise((resolve, reject) => {
     Users.find({ username }, (err, doc) => {
-      if (err || !doc) {
+      if (error) {
+        return reject({ error });
+      }
+
+      if (doc.length === 0) {
         console.log(`${username} does not exist`);
-
-        if (err) {
-          return reject({ error: err });
-        }
-
         return reject({ error: `user: ${username} does not exist` });
       }
 
@@ -60,13 +59,12 @@ const getUsersNearAPoint = ({ latLng }) => {
 const remove = ({ username }) => {
   return new Promise((resolve, reject) => {
     Users.find({ username }, (error, doc) => {
-      if (error || !doc) {
+      if (error) {
+        return reject({ error });
+      }
+
+      if (doc.length === 0) {
         console.log(`${username} does not exist`);
-
-        if (error) {
-          return reject({ error });
-        }
-
         return reject({ error: `user: ${username} does not exist` });
       }
 
