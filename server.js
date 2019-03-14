@@ -350,7 +350,7 @@ io.on("connection", socket => {
         console.log(error);
       });
     // socket.broadcast.emit("send_username_if_nearby", message);
-    socket.broadcast.emit("new-chatroom-msg", message);
+    socket.broadcast.emit("new_chatroom_msg", message);
   });
 
   // Keep an ear out for when clients send us their usernames on a new chatroom message
