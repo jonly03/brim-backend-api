@@ -349,7 +349,7 @@ io.on("connection", socket => {
         );
         console.log(error);
       });
-    socket.broadcast.emit("send_username_if_nearby", message);
+    // socket.broadcast.emit("send_username_if_nearby", message);
     socket.broadcast.emit("new-chatroom-msg", message);
   });
 
