@@ -32,7 +32,7 @@ const updateLocation = ({ username, lat, lng }) => {
 
       if (doc.length === 0) {
         console.log(`${username} does not exist`);
-        return reject({ error: `user: ${username} does not exist` });
+        return resolve({ error: `user: ${username} does not exist` });
       }
 
       Users.update({ username }, { $set: { lat, lng } }, error => {
@@ -65,7 +65,7 @@ const remove = ({ username }) => {
 
       if (doc.length === 0) {
         console.log(`${username} does not exist`);
-        return reject({ error: `user: ${username} does not exist` });
+        return resolve({ error: `user: ${username} does not exist` });
       }
 
       Users.remove({ username }, error => {
