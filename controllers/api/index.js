@@ -168,8 +168,9 @@ Router.get("/users/near/:lat/:lng", (req, res) => {
 });
 
 Router.delete("/users/:username", (req, res) => {
-  console.log("username received on delete route: ", username);
   const { username } = req.params;
+
+  console.log("username received on delete route: ", username);
 
   if (!username) {
     return res.json({
