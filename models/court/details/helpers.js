@@ -308,7 +308,12 @@ function checkinAnonymous(clientId, courtId) {
         mongoDBCourtsRef.findAndModify(
           {
             query: { _id: courtId },
-            update: { $inc: { checkins_current: 1, checkins_total: 1 } },
+            update: {
+              $inc: {
+                checkins_current: NumberInt(1),
+                checkins_total: NumberInt(1)
+              }
+            },
             new: true
           },
           (err, doc) => {
@@ -472,7 +477,7 @@ function decrementCourtCheckins(courtId) {
     mongoDBCourtsRef.findAndModify(
       {
         query: { _id: courtId, checkins_current: { $gt: 0 } },
-        update: { $inc: { checkins_current: -1 } },
+        update: { $inc: { checkins_current: NumberInt(-1) } },
         new: true
       },
       (err, doc) => {
@@ -551,7 +556,7 @@ function incrementCourtsNearbyOnlineCounts(clientId, coords) {
           console.log(`Incrementing their nearby online counts...`);
           mongoDBCourtsRef.update(
             { $or: [...queries] },
-            { $inc: { nearby_online_count: 1 } },
+            { $inc: { nearby_online_count: NumberInt(1) } },
             { multi: true },
             err => {
               if (err) {
@@ -628,7 +633,7 @@ function decrementCourtsNearbyOnlineCounts(clientId) {
         console.log(`Decrementing their nearby online counts...`);
         mongoDBCourtsRef.update(
           { $or: [...queries] },
-          { $inc: { nearby_online_count: -1 } },
+          { $inc: { nearby_online_count: NumberInt(-1) } },
           { multi: true },
           err => {
             if (err) {

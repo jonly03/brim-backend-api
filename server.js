@@ -179,10 +179,6 @@ let io = require("socket.io").listen(server);
 io.on("connection", socket => {
   console.log("clientID/" + socket.id + " connected");
 
-  socket.on("test", msg => {
-    console.log("received test message: ", msg);
-  });
-
   // When we get an 'online' msg with client coords, notify nearbycourts to increment their nearby online count
   socket.on("online", coords => {
     console.log("received online message");
