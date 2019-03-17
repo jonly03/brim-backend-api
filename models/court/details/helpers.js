@@ -535,7 +535,7 @@ function incrementCourtsNearbyOnlineCounts(clientId, coords) {
         // Second find all courts nearby and increment their nearby online counts
         console.log(`Finding courts near clientId/${clientId}...`);
         tryGettingNearbyCourtsMongoDB(coords).then(res => {
-          let { courts } = res;
+          let { docs: courts } = res;
 
           let courtIds = [];
           if (!courts || courts.length <= 0) {
@@ -610,7 +610,7 @@ function decrementCourtsNearbyOnlineCounts(clientId) {
       // Second find all courts nearby and decrement their nearby online counts
       console.log(`Finding courts near where clientId/${clientId} was ...`);
       tryGettingNearbyCourtsMongoDB(coords).then(res => {
-        let { courts } = res;
+        let { docs: courts } = res;
 
         let courtIds = [];
         if (courts.lenght <= 0) {
