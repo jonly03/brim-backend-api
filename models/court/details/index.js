@@ -10,12 +10,12 @@ function saveOneCourtInfo(id, name, location) {
       .then(locDetails => {
         let courtDetails = {
           name,
-          checkins_current: NumberInt(0),
-          checkins_total: NumberInt(0),
-          favs_total: NumberInt(0),
-          photos_total: NumberInt(0),
-          reviews_total: NumberInt(0),
-          nearby_online_count: NumberInt(0),
+          checkins_current: 0,
+          checkins_total: 0,
+          favs_total: 0,
+          photos_total: 0,
+          reviews_total: 0,
+          nearby_online_count: 0,
           _id: id,
           ...locDetails
         };
