@@ -149,6 +149,20 @@ Router.post("/users/location", (req, res) => {
     .catch(error => res.status(404).json(error));
 });
 
+Router.get("/users/courts/no_interest", (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    return res.json({
+      error: "username is a required payload"
+    });
+  }
+
+  Users.getCourtsOfNoInterest({ username })
+    .then(courtsOfNoInterest => res.status(200).json(courtsOfNoInterest))
+    .catch(error => res.status(404).json(error));
+});
+
 Router.post("/users/courts/no_interest", (req, res) => {
   const { username, courtId } = req.body;
 

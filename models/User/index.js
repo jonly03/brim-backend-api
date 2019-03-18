@@ -139,6 +139,28 @@ const removeToCourtsOfNoInterest = ({ username, courtId }) => {
   });
 };
 
+const getCourtsOfNoInterest = ({ username }) => {
+  return new Promise((resolve, reject) => {
+    Users.find({ username }, (error, docs) => {
+      if (error) {
+        return reject({ error });
+      }
+
+      if (docs.length === 0) {
+        console.log(`${username} does not exist`);
+        return resolve({ error: `user: ${username} does not exist` });
+      }
+
+      const courtIds =
+        docs[0].courtsOfNoInterest.length > 0
+          ? docs[0].courtsOfNoInterest.split(",")
+          : [];
+
+      return resolve({ courtIds });
+    });
+  });
+};
+
 const getUsersNearAPoint = ({ latLng }) => {
   return locationHelpers.getNearbyDocs({
     latLng,
@@ -172,31 +194,12 @@ const remove = ({ username }) => {
   });
 };
 
-// getUserToken = ({ username }) => {
-//   return new Promise((resolve, reject) => {
-//     Users.findOne({ username }, (error, doc) => {
-//       if (err) {
-//         console.log(
-//           `Failed to retrieve push notification token for username: ${username} with error`
-//         );
-//         console.log(err);
-//         return reject(err);
-//       }
-
-//       if (!doc) {
-//         return resolve();
-//       }
-
-//       return resolve({ token: doc.token });
-//     });
-//   });
-// };
-
 module.exports = {
   save,
   updateLocation,
   addToCourtsOfNoInterest,
   removeToCourtsOfNoInterest,
+  getCourtsOfNoInterest,
   getUsersNearAPoint,
   remove
   // getUserToken
