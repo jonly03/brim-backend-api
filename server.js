@@ -290,6 +290,10 @@ io.on("connection", socket => {
         // Create notifications to
         let notifications = [];
         for (let idx = 0; idx < users.length; idx++) {
+          // Don't send notification to the sender (obviously)
+          if (user.username === message.sender) {
+            continue;
+          }
           const user = users[idx];
           const { token: pushToken, dist } = user;
 
