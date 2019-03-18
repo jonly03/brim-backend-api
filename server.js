@@ -282,6 +282,9 @@ io.on("connection", socket => {
       .then(data => {
         const { docs: users } = data;
 
+        console.log("Retrieved users");
+        console.log(users);
+
         if (users.length <= 0) {
           // No need to notify anyone since no one near this court has opted in to receive push notifications
           return;
@@ -318,7 +321,7 @@ io.on("connection", socket => {
         // recommend you batch your notifications to reduce the number of requests
         // and to compress them (notifications with similar content will get
         // compressed).
-        let chunks = expo.chunkPushNotifications(messages);
+        let chunks = expo.chunkPushNotifications(notifications);
         let tickets = [];
         (async () => {
           // Send the chunks to the Expo push notification service. There are
