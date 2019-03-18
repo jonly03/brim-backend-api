@@ -301,11 +301,9 @@ io.on("connection", socket => {
           }
 
           const title = `New BRIM message at a court ${dist}mi near you!`;
-          const subtitle = `@${sender} in ${courtName} chat room`;
-          const body = message.text;
+          const body = `@${sender} in ${courtName} chat room:\n${message.text}`;
           notifications.push({
             title,
-            subtitle,
             to: pushToken,
             sound: "default",
             body,
