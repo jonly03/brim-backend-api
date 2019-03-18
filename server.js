@@ -282,9 +282,6 @@ io.on("connection", socket => {
       .then(data => {
         const { docs: users } = data;
 
-        console.log("Retrieved users");
-        console.log(users);
-
         if (users.length <= 0) {
           // No need to notify anyone since no one near this court has opted in to receive push notifications
           return;
@@ -292,7 +289,8 @@ io.on("connection", socket => {
 
         // Create notifications to
         let notifications = [];
-        for (let user in users) {
+        for (let idx = 0; idx < users.length; idx++) {
+          const user = users[idx];
           const { token: pushToken, dist } = user;
 
           if (!Expo.isExpoPushToken(pushToken)) {
