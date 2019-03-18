@@ -149,7 +149,7 @@ Router.post("/users/location", (req, res) => {
     .catch(error => res.status(404).json(error));
 });
 
-Router.get("/users/courts/no_interest", (req, res) => {
+Router.get("/users/courts/no_interest/:username", (req, res) => {
   const { username } = req.params;
 
   if (!username) {
