@@ -290,12 +290,13 @@ io.on("connection", socket => {
         // Create notifications to
         let notifications = [];
         for (let idx = 0; idx < users.length; idx++) {
+          const user = users[idx];
+          const { username, token: pushToken, dist } = user;
+
           // Don't send notification to the sender (obviously)
-          if (user.username === message.sender) {
+          if (username === message.sender) {
             continue;
           }
-          const user = users[idx];
-          const { token: pushToken, dist } = user;
 
           if (!Expo.isExpoPushToken(pushToken)) {
             console.error(
