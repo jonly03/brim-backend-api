@@ -304,7 +304,7 @@ io.on("connection", socket => {
             continue;
           }
 
-          const title = `New BRIM message at a court ${dist}mi near you!`;
+          const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
           const body = `@${sender} in ${courtName} chat room:\n${message.text}`;
           notifications.push({
             title,
