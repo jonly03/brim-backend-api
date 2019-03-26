@@ -184,6 +184,7 @@ Router.post("/users/courts/no_interest", (req, res) => {
 Router.delete("/users/courts/no_interest", (req, res) => {
   console.log("In DELETE route /user/courts/no_interest");
   const { username, courtId } = req.body;
+  console.log(`Username: ${username} courtId: ${courtId}`);
 
   if (!username || !courtId) {
     return res.json({
