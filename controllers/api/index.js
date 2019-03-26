@@ -172,6 +172,10 @@ Router.post("/users/courts/no_interest", (req, res) => {
     });
   }
 
+  console.log(
+    `Adding court: ${courtId} on user: @${username} list of no interest courts`
+  );
+
   Users.addToCourtsOfNoInterest({ username, courtId })
     .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
@@ -185,6 +189,10 @@ Router.delete("/users/courts/no_interest", (req, res) => {
       error: "username and courtId are required payloads"
     });
   }
+
+  console.log(
+    `Removing court: ${courtId} on user: @${username} list of no interest courts`
+  );
 
   Users.removeToCourtsOfNoInterest({ username, courtId })
     .then(success => res.status(200).json(success))
