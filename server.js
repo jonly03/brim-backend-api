@@ -289,48 +289,48 @@ io.on("connection", socket => {
 
         // Create notifications to
         let notifications = [];
-        for (let idx = 0; idx < users.length; idx++) {
-          const user = users[idx];
+        users.forEach(async user => {
           const { username, token: pushToken, dist } = user;
 
           // Don't send notification to the sender (obviously)
           if (username === message.sender) {
-            continue;
+            return;
           }
 
           if (!Expo.isExpoPushToken(pushToken)) {
             console.error(
               `Push token ${pushToken} is not a valid Expo push token`
             );
-            continue;
+            return;
           }
 
           // Only send user notifications about courts they are interested in
-          Users.getCourtsOfNoInterest({ username })
-            .then(courtsOfNoInterest => {
-              const { courtIds } = courtsOfNoInterest;
-
-              if (courtIds.indexOf(message.courtId) === -1) {
-                const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
-                const body = `@${sender} in ${courtName} chat room:\n${
-                  message.text
-                }`;
-                notifications.push({
-                  title,
-                  to: pushToken,
-                  sound: "default",
-                  body,
-                  data: { courtId, sender }
-                });
-              }
-            })
-            .catch(error => {
-              console.log(
-                "Failed to send push notification because getCourtsOfNoInterest failed"
-              );
-              console.log(error);
+          try {
+            const courtsOfNoInterest = await Users.getCourtsOfNoInterest({
+              username
             });
-        }
+            const { courtIds } = courtsOfNoInterest;
+
+            if (courtIds.indexOf(message.courtId) === -1) {
+              const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
+              const body = `@${sender} in ${courtName} chat room:\n${
+                message.text
+              }`;
+              notifications.push({
+                title,
+                to: pushToken,
+                sound: "default",
+                body,
+                data: { courtId, sender }
+              });
+            }
+          } catch (error) {
+            console.log(
+              "Failed to send push notification because getCourtsOfNoInterest failed"
+            );
+            console.log(error);
+          }
+        });
 
         // Batch send notifications
         // The Expo push notification service accepts batches of notifications so
