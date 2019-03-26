@@ -305,15 +305,31 @@ io.on("connection", socket => {
             continue;
           }
 
-          const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
-          const body = `@${sender} in ${courtName} chat room:\n${message.text}`;
-          notifications.push({
-            title,
-            to: pushToken,
-            sound: "default",
-            body,
-            data: { courtId, sender }
-          });
+          // Only send user notifications about courts they are interested in
+          Users.getCourtsOfNoInterest({ username })
+            .then(courtsOfNoInterest => {
+              const { courtIds } = courtsOfNoInterest;
+
+              if (courtIds.indexOf(message.courtId) === -1) {
+                const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
+                const body = `@${sender} in ${courtName} chat room:\n${
+                  message.text
+                }`;
+                notifications.push({
+                  title,
+                  to: pushToken,
+                  sound: "default",
+                  body,
+                  data: { courtId, sender }
+                });
+              }
+            })
+            .catch(error => {
+              console.log(
+                "Failed to send push notification because getCourtsOfNoInterest failed"
+              );
+              console.log(error);
+            });
         }
 
         // Batch send notifications
