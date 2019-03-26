@@ -267,7 +267,7 @@ io.on("connection", socket => {
   });
 
   // Keep an ear out for when clients send chat room messages and broadcast them to other clients in the same room
-  socket.on("chatroom_msg", message => {
+  socket.on("chatroom_msg", async message => {
     console.log(
       `Received message from @${message.sender} in chatroom of courtId: ${
         message.courtId
@@ -278,105 +278,105 @@ io.on("connection", socket => {
 
     // When we get a new chatroom msg, only notify users near the court who have granted us permission to send them push notifications
     const { courtLocation: latLng, sender, courtId, courtName } = message;
-    Users.getUsersNearAPoint({ latLng })
-      .then(data => {
-        const { docs: users } = data;
+    try {
+      const data = await Users.getUsersNearAPoint({ latLng });
+      const { docs: users } = data;
 
-        if (users.length <= 0) {
-          // No need to notify anyone since no one near this court has opted in to receive push notifications
+      if (users.length <= 0) {
+        // No need to notify anyone since no one near this court has opted in to receive push notifications
+        return;
+      }
+
+      console.log(`Found ${users.length} users near ${latLng}`);
+      console.log("Looping over each one");
+
+      // Create notifications to
+      let notifications = [];
+      for (let idx = 0; idx < users.length; idx++) {
+        const user = users[idx];
+        const { username, token: pushToken, dist } = user;
+
+        // Don't send notification to the sender (obviously)
+        if (username === message.sender) {
           return;
         }
 
-        console.log(`Found ${users.length} users near ${latLng}`);
-        console.log("Looping over each one");
+        if (!Expo.isExpoPushToken(pushToken)) {
+          console.error(
+            `Push token ${pushToken} is not a valid Expo push token`
+          );
+          return;
+        }
 
-        // Create notifications to
-        let notifications = [];
-        users.forEach(async user => {
-          const { username, token: pushToken, dist } = user;
+        // Only send user notifications about courts they are interested in
+        try {
+          console.log(`Retrieving user: @${username} courts of no interest`);
+          const courtsOfNoInterest = await Users.getCourtsOfNoInterest({
+            username
+          });
+          const { courtIds } = courtsOfNoInterest;
+          console.log(`Got courts of no interest to user: @${username}`);
+          console.log("Preparing notification");
 
-          // Don't send notification to the sender (obviously)
-          if (username === message.sender) {
-            return;
-          }
-
-          if (!Expo.isExpoPushToken(pushToken)) {
-            console.error(
-              `Push token ${pushToken} is not a valid Expo push token`
-            );
-            return;
-          }
-
-          // Only send user notifications about courts they are interested in
-          try {
-            console.log(`Retrieving user: @${username} courts of no interest`);
-            const courtsOfNoInterest = await Users.getCourtsOfNoInterest({
-              username
+          if (courtIds.indexOf(message.courtId) === -1) {
+            const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
+            const body = `@${sender} in ${courtName} chat room:\n${
+              message.text
+            }`;
+            notifications.push({
+              title,
+              to: pushToken,
+              sound: "default",
+              body,
+              data: { courtId, sender }
             });
-            const { courtIds } = courtsOfNoInterest;
-            console.log(`Got courts of no interest to user: @${username}`);
-            console.log("Preparing notification");
+          }
+        } catch (error) {
+          console.log(
+            "Failed to send push notification because getCourtsOfNoInterest failed"
+          );
+          console.log(error);
+        }
+      }
 
-            if (courtIds.indexOf(message.courtId) === -1) {
-              const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
-              const body = `@${sender} in ${courtName} chat room:\n${
-                message.text
-              }`;
-              notifications.push({
-                title,
-                to: pushToken,
-                sound: "default",
-                body,
-                data: { courtId, sender }
-              });
-            }
+      // Batch send notifications
+      // The Expo push notification service accepts batches of notifications so
+      // that you don't need to send 1000 requests to send 1000 notifications. We
+      // recommend you batch your notifications to reduce the number of requests
+      // and to compress them (notifications with similar content will get
+      // compressed).
+      console.log("Batching notifications");
+      console.log(notifications);
+      let chunks = expo.chunkPushNotifications(notifications);
+      let tickets = [];
+      (async () => {
+        // Send the chunks to the Expo push notification service. There are
+        // different strategies you could use. A simple one is to send one chunk at a
+        // time, which nicely spreads the load out over time:
+        for (let chunk of chunks) {
+          try {
+            let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+            console.log(ticketChunk);
+            tickets.push(...ticketChunk);
+            // NOTE: If a ticket contains an error code in ticket.details.error, you
+            // must handle it appropriately. The error codes are listed in the Expo
+            // documentation:
+            // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
           } catch (error) {
-            console.log(
-              "Failed to send push notification because getCourtsOfNoInterest failed"
-            );
-            console.log(error);
+            console.error(error);
           }
-        });
-
-        // Batch send notifications
-        // The Expo push notification service accepts batches of notifications so
-        // that you don't need to send 1000 requests to send 1000 notifications. We
-        // recommend you batch your notifications to reduce the number of requests
-        // and to compress them (notifications with similar content will get
-        // compressed).
-        console.log("Batching notifications");
-        console.log(notifications);
-        let chunks = expo.chunkPushNotifications(notifications);
-        let tickets = [];
-        (async () => {
-          // Send the chunks to the Expo push notification service. There are
-          // different strategies you could use. A simple one is to send one chunk at a
-          // time, which nicely spreads the load out over time:
-          for (let chunk of chunks) {
-            try {
-              let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-              console.log(ticketChunk);
-              tickets.push(...ticketChunk);
-              // NOTE: If a ticket contains an error code in ticket.details.error, you
-              // must handle it appropriately. The error codes are listed in the Expo
-              // documentation:
-              // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        })();
-      })
-      .catch(error => {
-        console.log(
-          `Failed to retrieve users near courtId: ${
-            message.courtId
-          } located at {lat: ${message.courtLocation.lat}, lng: ${
-            message.courtLocation.lng
-          }}`
-        );
-        console.log(error);
-      });
+        }
+      })();
+    } catch (error) {
+      console.log(
+        `Failed to retrieve users near courtId: ${
+          message.courtId
+        } located at {lat: ${message.courtLocation.lat}, lng: ${
+          message.courtLocation.lng
+        }}`
+      );
+      console.log(error);
+    }
     // socket.broadcast.emit("send_username_if_nearby", message);
     socket.broadcast.emit("new_chatroom_msg", message);
   });
