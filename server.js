@@ -287,6 +287,9 @@ io.on("connection", socket => {
           return;
         }
 
+        console.log(`Found ${users.length} users near ${latLng}`);
+        console.log("Looping over each one");
+
         // Create notifications to
         let notifications = [];
         users.forEach(async user => {
@@ -306,10 +309,13 @@ io.on("connection", socket => {
 
           // Only send user notifications about courts they are interested in
           try {
+            console.log(`Retrieving user: @${username} courts of no interest`);
             const courtsOfNoInterest = await Users.getCourtsOfNoInterest({
               username
             });
             const { courtIds } = courtsOfNoInterest;
+            console.log(`Got courts of no interest to user: @${username}`);
+            console.log("Preparing notification");
 
             if (courtIds.indexOf(message.courtId) === -1) {
               const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
@@ -338,6 +344,8 @@ io.on("connection", socket => {
         // recommend you batch your notifications to reduce the number of requests
         // and to compress them (notifications with similar content will get
         // compressed).
+        console.log("Batching notifications");
+        console.log(notifications);
         let chunks = expo.chunkPushNotifications(notifications);
         let tickets = [];
         (async () => {
