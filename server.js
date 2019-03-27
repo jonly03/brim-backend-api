@@ -227,7 +227,7 @@ notifyUsersNearACourt = ({ message }) => {
             (potentialUserToNotifyCourtsOfNoInterest, idx) => {
               const { courtIds } = potentialUserToNotifyCourtsOfNoInterest;
               if (courtIds.indexOf(message.courtId) === -1) {
-                return allPotentialUsersToNotifyCourtsOfNoInterest[idx];
+                return potentialUsersToNotify[idx];
               }
             }
           );
