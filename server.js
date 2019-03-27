@@ -186,7 +186,11 @@ notifyUsersNearACourt = ({ message }) => {
         return;
       }
 
-      console.log(`Found ${users.length} users near ${latLng}`);
+      console.log(
+        `Found ${users.length} users near {lat: ${latLng.lat}, lng: ${
+          latLng.lng
+        }`
+      );
       console.log(
         "Filtering out users with invalid push tokens and the user who sent the message..."
       );
@@ -210,7 +214,7 @@ notifyUsersNearACourt = ({ message }) => {
       );
 
       // Finally weed out users who specified that they don't want to be notified about the court in which the message came from
-      const allUsersToNotify = [];
+      let allUsersToNotify = [];
       Promise.all(getPotentialUsersToNotifyCourtsOfNoInterest)
         .then(allPotentialUsersToNotifyCourtsOfNoInterest => {
           console.log(
