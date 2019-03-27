@@ -239,6 +239,8 @@ notifyUsersNearACourt = ({ message }) => {
           let notifications = [];
           for (let idx = 0; idx < allUsersToNotify.length; idx++) {
             const userToNotify = allUsersToNotify[idx];
+            console.log("User to notify");
+            console.log(userToNotify);
             const { token: pushToken, dist } = userToNotify;
 
             const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
