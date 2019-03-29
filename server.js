@@ -256,7 +256,7 @@ notifyUsersNearACourt = ({ type, info }) => {
               title = `New BRIM Message Alert at a court ${dist}mi near you!`;
 
               body = `@${sender} in ${courtName} chat room:\n${info.text}`;
-            } else if (type === "checking") {
+            } else if (type === "checkedin") {
               title = `New BRIM Checkin Alert at a court ${dist}mi near you!`;
 
               const {
@@ -383,7 +383,10 @@ io.on("connection", socket => {
         socket.broadcast.emit("checkedin", { courtId, checkins });
 
         // Send push notifiication to nearby users who are interested in knowing about activities around this court
-        notifyUsersNearACourt({ type: "checkin", info: { ...data, checkins } });
+        notifyUsersNearACourt({
+          type: "checkedin",
+          info: { ...data, checkins }
+        });
       })
       .catch(err => {
         console.log("Failed to check user in");
