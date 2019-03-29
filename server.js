@@ -262,7 +262,9 @@ notifyUsersNearACourt = ({ type, info }) => {
               const {
                 checkins: { current }
               } = info;
-              body = `${current} people are currently playing at ${courtName}`;
+              body = `${current} other ${
+                current > 1 ? "people are" : "person is"
+              } currently playing at ${courtName}`;
             }
             notifications.push({
               title,
