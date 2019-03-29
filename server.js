@@ -175,7 +175,7 @@ let server = app.listen(PORT, () => {
 
 notifyUsersNearACourt = ({ type, info }) => {
   // Only notify users near the court who have granted us permission to send them push notifications
-  const { courtLocation: latLng, courtId, courtName } = info;
+  const { courtLocation: latLng, courtId, sender, courtName } = info;
 
   Users.getUsersNearAPoint({ latLng })
     .then(data => {
@@ -192,16 +192,23 @@ notifyUsersNearACourt = ({ type, info }) => {
         }`
       );
       console.log(
-        "Filtering out users with invalid push tokens and the user who sent the message..."
+        "Filtering out users with invalid push tokens and the user who initiated the notification (if a username exists)..."
       );
       // Filter out users with invalid push tokens and the user who sent the message
       let potentialUsersToNotify = users.filter(user => {
         const { username, token: pushToken } = user;
-        return username !== message.sender && Expo.isExpoPushToken(pushToken);
+
+        if (sender) {
+          // When it's a chatroom message the sender is always a valid username
+          // Anyone can check in without a username, so take care of that
+          return username !== sender && Expo.isExpoPushToken(pushToken);
+        }
+
+        return Expo.isExpoPushToken(pushToken);
       });
 
       console.log(
-        "Done filtering out users with invalid push tokens and the user who sent the message"
+        "Done filtering out users with invalid push tokens and the user who initiated the notification (if a username exists)"
       );
       console.log(
         "Getting courts of no interest for our potential users to notify..."
@@ -226,7 +233,7 @@ notifyUsersNearACourt = ({ type, info }) => {
           allUsersToNotify = allPotentialUsersToNotifyCourtsOfNoInterest.map(
             (potentialUserToNotifyCourtsOfNoInterest, idx) => {
               const { courtIds } = potentialUserToNotifyCourtsOfNoInterest;
-              if (courtIds.indexOf(message.courtId) === -1) {
+              if (courtIds.indexOf(courtId) === -1) {
                 return potentialUsersToNotify[idx];
               }
             }
@@ -248,8 +255,7 @@ notifyUsersNearACourt = ({ type, info }) => {
             if (type === "new_chatroom_msg") {
               title = `New BRIM Message Alert at a court ${dist}mi near you!`;
 
-              const { sender } = info;
-              body = `@${sender} in ${courtName} chat room:\n${message.text}`;
+              body = `@${sender} in ${courtName} chat room:\n${info.text}`;
             } else if (type === "checking") {
               title = `New BRIM Checkin Alert at a court ${dist}mi near you!`;
 
@@ -263,7 +269,7 @@ notifyUsersNearACourt = ({ type, info }) => {
               to: pushToken,
               sound: "default",
               body,
-              data: { courtId, sender }
+              data: { courtId, sender, courtName }
             });
           }
 
