@@ -173,9 +173,9 @@ let server = app.listen(PORT, () => {
   console.log(`hoopsgram api server listening on: ${PORT}`);
 });
 
-notifyUsersNearACourt = ({ message }) => {
-  // When we get a new chatroom msg, only notify users near the court who have granted us permission to send them push notifications
-  const { courtLocation: latLng, sender, courtId, courtName } = message;
+notifyUsersNearACourt = ({ type, info }) => {
+  // Only notify users near the court who have granted us permission to send them push notifications
+  const { courtLocation: latLng, courtId, courtName } = info;
 
   Users.getUsersNearAPoint({ latLng })
     .then(data => {
@@ -243,10 +243,21 @@ notifyUsersNearACourt = ({ message }) => {
             console.log(userToNotify);
             const { token: pushToken, dist } = userToNotify;
 
-            const title = `New BRIM Message Alert at a court ${dist}mi near you!`;
-            const body = `@${sender} in ${courtName} chat room:\n${
-              message.text
-            }`;
+            let title = "";
+            let body = "";
+            if (type === "new_chatroom_msg") {
+              title = `New BRIM Message Alert at a court ${dist}mi near you!`;
+
+              const { sender } = info;
+              body = `@${sender} in ${courtName} chat room:\n${message.text}`;
+            } else if (type === "checking") {
+              title = `New BRIM Checkin Alert at a court ${dist}mi near you!`;
+
+              const {
+                checkins: { current }
+              } = info;
+              body = `${current} people are currently playing at ${courtName}`;
+            }
             notifications.push({
               title,
               to: pushToken,
@@ -345,7 +356,9 @@ io.on("connection", socket => {
   });
 
   // When connected, keep an ear out for checkin messages and save the connected client
-  socket.on("checkin", courtId => {
+  socket.on("checkin", data => {
+    const { courtId } = data;
+
     console.log(
       "checkin message from clientId/" +
         socket.id +
@@ -362,6 +375,9 @@ io.on("connection", socket => {
         console.log("checkedin message sent from server to client");
         socket.emit("checkedin", { courtId, checkins });
         socket.broadcast.emit("checkedin", { courtId, checkins });
+
+        // Send push notifiication to nearby users who are interested in knowing about activities around this court
+        notifyUsersNearACourt({ type: "checkin", info: { ...data, checkins } });
       })
       .catch(err => {
         console.log("Failed to check user in");
@@ -406,11 +422,10 @@ io.on("connection", socket => {
         message.courtLocation.lng
       }}`
     );
-
-    // socket.broadcast.emit("send_username_if_nearby", message);
     socket.broadcast.emit("new_chatroom_msg", message);
 
-    notifyUsersNearACourt({ message });
+    // Send push notifiication to nearby users who are interested in knowing about activities around this court
+    notifyUsersNearACourt({ type: "new_chatroom_msg", info: { ...message } });
   });
 
   // Keep an ear out for when clients send us their usernames on a new chatroom message
