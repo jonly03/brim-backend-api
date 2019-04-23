@@ -174,7 +174,7 @@ let server = app.listen(PORT, () => {
   console.log(`hoopsgram api server listening on: ${PORT}`);
 
   setInterval(function() {
-    http.get("https://ballup-turned-hoopsgram-api.herokuapp.com");
+    http.get("http://ballup-turned-hoopsgram-api.herokuapp.com");
   }, 5 * 60 * 1000); // every 5 minutes wake it up
 });
 
