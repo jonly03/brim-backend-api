@@ -3,6 +3,7 @@ const express = require("express");
 const courtHelpers = require("./models/court/details/helpers");
 const Users = require("./models").users;
 const { Expo } = require("expo-server-sdk");
+const http = require("http");
 var Mixpanel = require("mixpanel");
 
 // Create a new Expo SDK client
@@ -171,6 +172,10 @@ app.post("/track/:event", (req, res) => {
 
 let server = app.listen(PORT, () => {
   console.log(`hoopsgram api server listening on: ${PORT}`);
+
+  setInterval(function() {
+    http.get("https://ballup-turned-hoopsgram-api.herokuapp.com");
+  }, 5 * 60 * 1000); // every 5 minutes wake it up
 });
 
 notifyUsersNearACourt = ({ type, info }) => {
