@@ -294,7 +294,7 @@ function checkin({ clientId, courtId, username }) {
     let addToSetUpdateQuery = { clients_ids: clientId };
     if (username) {
       // Make sure that we save the checkedin users if they have them
-      updateQuery.usernames = username;
+      addToSetUpdateQuery.usernames = username;
     }
     mongoDBCheckinsRef.update(
       { court_id: courtId },
@@ -369,7 +369,7 @@ function checkout({ clientId, courtId, username }) {
     let pullUpdateQuery = { clients_ids: clientId };
     if (username) {
       // Make sure that we remove the checkedin usernames if they have them
-      updateQuery.usernames = username;
+      pullUpdateQuery.usernames = username;
     }
     mongoDBCheckinsRef.findAndModify(
       {
