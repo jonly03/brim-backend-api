@@ -5,6 +5,7 @@ const courtHelpers = require("../../models/court/details/helpers");
 const courtPhotosHelpers = require("../../models/court/photos");
 // const db = require('../../models/Firestore').firestore;
 const Users = require("../../models").users;
+const Checkins = require("../../models").checkins;
 
 const Router = express.Router();
 
@@ -36,8 +37,13 @@ const Router = express.Router();
 //     })
 // })
 
+// Courts routes
 Router.get("/courts/latLng/:lat/:lng", function(req, res) {
   let { lat, lng } = req.params;
+
+  if (!lat || !lng) {
+    return res.status(500).json({ error: "lat and lng are required" });
+  }
 
   // Only get courts from our DB
   courtHelpers
@@ -92,6 +98,9 @@ Router.get("/courts/latLng/:lat/:lng", function(req, res) {
 });
 
 Router.get("/courts/:id", (req, res) => {
+  if (!req.params.id) {
+    return res.status(500).json({ error: "id is required" });
+  }
   courtHelpers
     .getOneCourt(req.params.id)
     .then(courts => {
@@ -109,6 +118,22 @@ Router.get("/courts/:id", (req, res) => {
     .catch(err => {
       console.log(err);
       res.status(404).json({ err });
+    });
+});
+
+// Checkins routes
+Router.get("/checkins/:court_id", (req, res) => {
+  if (!req.params.court_id) {
+    res.status(500).json({ error: "court_id is required" });
+  }
+
+  const { court_id } = req.params;
+
+  Checkins.getCheckedInUsers({ court_id })
+    .then(checkedInUsers => res.json({ checkedInUsers }))
+    .catch(error => {
+      console.log("Failed to get checked in users");
+      res.status(404).status({ error });
     });
 });
 

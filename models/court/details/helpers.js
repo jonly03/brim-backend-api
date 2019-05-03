@@ -268,7 +268,7 @@ function sortByNearestMongoDB(latLng, courtsList) {
   return courts.sort((court1, court2) => court1.dist - court2.dist);
 }
 
-function checkinAnonymous(clientId, courtId) {
+function checkin({ clientId, courtId, username }) {
   return new Promise((resolve, reject) => {
     // Find the court and increase the current and total checkins
     //     firestoreCourtsRef.doc(courtId).get().then(doc =>{
@@ -291,9 +291,14 @@ function checkinAnonymous(clientId, courtId) {
       `Anonymously checking clientId/${clientId} into courtId/${courtId}`
     );
     // Add the checkin record for the court then increment checkins for court
+    let addToSetUpdateQuery = { clients_ids: clientId };
+    if (username) {
+      // Make sure that we save the checkedin users if they have them
+      updateQuery.usernames = username;
+    }
     mongoDBCheckinsRef.update(
       { court_id: courtId },
-      { $addToSet: { clients_ids: clientId } },
+      { $addToSet: addToSetUpdateQuery },
       { upsert: true, new: true },
       (err, doc) => {
         if (err) {
@@ -335,7 +340,7 @@ function checkinAnonymous(clientId, courtId) {
   });
 }
 
-function checkoutAnonymous(clientId, courtId) {
+function checkout({ clientId, courtId, username }) {
   return new Promise((resolve, reject) => {
     // Find the court and decrease the current checkins
     //     firestoreCourtsRef.doc(courtId).get().then(doc =>{
@@ -357,14 +362,19 @@ function checkoutAnonymous(clientId, courtId) {
     // 		}
     // 	})
 
-    console.log("In checkoutAnonymous function...");
+    console.log("In checkout function...");
     console.log(`clientId/${clientId} courtId/${courtId}`);
 
     // Remove checkin record for court then decrement checkins for court
+    let pullUpdateQuery = { clients_ids: clientId };
+    if (username) {
+      // Make sure that we remove the checkedin usernames if they have them
+      updateQuery.usernames = username;
+    }
     mongoDBCheckinsRef.findAndModify(
       {
         query: { court_id: courtId },
-        update: { $pull: { clients_ids: clientId } },
+        update: { $pull: pullUpdateQuery },
         new: true
       },
       (err, doc) => {
@@ -405,7 +415,7 @@ function checkoutAnonymous(clientId, courtId) {
   });
 }
 
-function checkoutAnonymousOnDisconnect(clientId) {
+function checkoutOnDisconnect({ clientId }) {
   console.log(
     `Checking clientId/${clientId} out from any court they were checked into due to disconnection`
   );
@@ -429,10 +439,11 @@ function checkoutAnonymousOnDisconnect(clientId) {
       console.log(`ClientId/${clientId} was checked into courtId/${courtId}`);
       console.log("Checking them out...");
 
+      let pullUpdateQuery = { clients_ids: clientId };
       mongoDBCheckinsRef.findAndModify(
         {
           query: { court_id: courtId },
-          update: { $pull: { clients_ids: clientId } },
+          update: { $pull: pullUpdateQuery },
           new: true
         },
         (err, doc) => {
@@ -468,6 +479,46 @@ function checkoutAnonymousOnDisconnect(clientId) {
         }
       );
     });
+  });
+}
+
+function removeUsernameOnCheckout({ username }) {
+  console.log(`Removing user/@${username} from checkins`);
+
+  return new Promise((resolve, reject) => {
+    mongoDBCheckinsRef.findOne(
+      { usernames: { $in: [username] } },
+      (err, doc) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+        }
+
+        if (doc === null || !doc) {
+          console.log(`User/@${username} is not checked in anywhere`);
+          return resolve();
+        }
+
+        const { court_id: courtId } = doc;
+        console.log(`User/@${username} was checked into courtId/${courtId}`);
+        console.log("Removing them from checkedins...");
+
+        mongoDBCheckinsRef.findAndModify(
+          {
+            query: { court_id: courtId },
+            update: { $pull: { usernames: username } },
+            new: true
+          },
+          (err, doc) => {
+            if (err) {
+              console.log(err);
+              reject(err);
+            }
+            resolve();
+          }
+        );
+      }
+    );
   });
 }
 
@@ -658,9 +709,10 @@ module.exports = {
   getNearbyCourts: tryGettingNearbyCourtsMongoDB,
   getAllCourts,
   getOneCourt,
-  checkinAnonymous,
-  checkoutAnonymous,
-  checkoutAnonymousOnDisconnect,
+  checkin,
+  checkout,
+  checkoutOnDisconnect,
+  removeUsernameOnCheckout,
   isClientOnline,
   incrementCourtsNearbyOnlineCounts,
   decrementCourtsNearbyOnlineCounts

@@ -85,7 +85,7 @@ app.use("/seed", seedRoutes);
 app.use("/api", apiRoutes);
 
 app.post("/checkin/:courtId", (req, res) => {
-  // Route to for anonymous checkins
+  // Route to for  checkins
   // No need for user to be logged in
   // Just get court's lat, lng and increase their checkins_current & checkins_total
   // if (!req.params.courtId){
@@ -93,7 +93,7 @@ app.post("/checkin/:courtId", (req, res) => {
   //     return res.status(500).json("Bad request: expected a correct court id");
   // }
 
-  // courtHelpers.checkinAnonymous(req.params.courtId)
+  // courtHelpers.checkin(req.params.courtId)
   // .then((checkins) =>{
   //     // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
   //     if (client){
@@ -109,7 +109,7 @@ app.post("/checkin/:courtId", (req, res) => {
 });
 
 app.post("/checkout/:courtId", (req, res) => {
-  // Route to for anonymous checkouts
+  // Route to for  checkouts
   // No need for user to be logged in
   // Just get court's lat, lng and decrease their checkins_current & checkins_total
   // if (!req.params.courtId){
@@ -117,7 +117,7 @@ app.post("/checkout/:courtId", (req, res) => {
   //     return res.status(500).json("Bad request: expected a correct court id");
   // }
 
-  // courtHelpers.checkoutAnonymous(req.params.courtId)
+  // courtHelpers.checkout(req.params.courtId)
   // .then((checkins) =>{
   //     // TODO: socket.io to broadcast the checkins_current (for now) to listening clients
   //     if (client){
@@ -370,7 +370,7 @@ io.on("connection", socket => {
 
   // When connected, keep an ear out for checkin messages and save the connected client
   socket.on("checkin", data => {
-    const { courtId } = data;
+    const { courtId, sender: username } = data;
 
     console.log(
       "checkin message from clientId/" +
@@ -380,7 +380,7 @@ io.on("connection", socket => {
     );
     console.log("checking client in...");
     courtHelpers
-      .checkinAnonymous(socket.id, courtId)
+      .checkin({ clientId: socket.id, courtId, username })
       .then(checkins => {
         console.log(
           "Done checking clientId/" + socket.id + " into courtId/" + courtId
@@ -403,7 +403,9 @@ io.on("connection", socket => {
   });
 
   // Keep an ear out for when clients disconnect so we can check them out
-  socket.on("checkout", courtId => {
+  socket.on("checkout", data => {
+    const { courtId, sender: username } = data;
+
     // Check clients out when we receive the checkout message
     console.log(
       "checkout message from clientId/" +
@@ -413,7 +415,7 @@ io.on("connection", socket => {
     );
     console.log("checking client out...");
     courtHelpers
-      .checkoutAnonymous(socket.id, courtId)
+      .checkout({ clientId: socket.id, courtId, username })
       .then(checkins => {
         console.log(
           "Done checking clientId/" + socket.id + " out of courtId/" + courtId
@@ -467,11 +469,25 @@ io.on("connection", socket => {
     socket.broadcast.emit("chatroom_messages_history", history);
   });
 
+  socket.on("remove_username_on_checkout", data => {
+    const { username } = data;
+    console.log(
+      `App closed and ${username} was checked into a court. Checking them out`
+    );
+    courtHelpers
+      .removeUsernameOnCheckout({ username })
+      .then(() => {})
+      .catch(err => {
+        console.log(`Failed to remove ${username} from checkins`);
+        console.log(err);
+      });
+  });
+
   // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
   socket.on("disconnect", () => {
     console.log(`clientId/${socket.id} disconnected.`);
     courtHelpers
-      .checkoutAnonymousOnDisconnect(socket.id)
+      .checkoutOnDisconnect({ clientId: socket.id })
       .then(courtInfo => {
         if (courtInfo !== null && courtInfo) {
           const { courtId, checkins } = courtInfo;
