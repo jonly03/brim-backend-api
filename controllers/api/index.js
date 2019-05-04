@@ -122,14 +122,14 @@ Router.get("/courts/:id", (req, res) => {
 });
 
 // Checkins routes
-Router.get("/checkins/:court_id", (req, res) => {
-  if (!req.params.court_id) {
-    res.status(500).json({ error: "court_id is required" });
+Router.get("/checkins/:court_id/:requestor", (req, res) => {
+  if (!req.params.court_id || !req.params.requestor) {
+    res.status(500).json({ error: "court_id and requestor are required" });
   }
 
-  const { court_id } = req.params;
+  const { court_id, requestor } = req.params;
 
-  Checkins.getCheckedInUsers({ court_id })
+  Checkins.getCheckedInUsers({ court_id, requestor })
     .then(checkedInUsers => res.json({ checkedInUsers }))
     .catch(error => {
       console.log("Failed to get checked in users");
