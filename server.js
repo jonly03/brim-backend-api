@@ -370,7 +370,7 @@ io.on("connection", socket => {
 
   // When connected, keep an ear out for checkin messages and save the connected client
   socket.on("checkin", data => {
-    const { courtId, sender: username } = data;
+    const { courtId, sender: username, checkInTime } = data;
 
     console.log(
       "checkin message from clientId/" +
@@ -380,7 +380,7 @@ io.on("connection", socket => {
     );
     console.log("checking client in...");
     courtHelpers
-      .checkin({ clientId: socket.id, courtId, username })
+      .checkin({ clientId: socket.id, courtId, username, checkInTime })
       .then(checkins => {
         console.log(
           "Done checking clientId/" + socket.id + " into courtId/" + courtId

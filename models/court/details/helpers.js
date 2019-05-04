@@ -268,7 +268,7 @@ function sortByNearestMongoDB(latLng, courtsList) {
   return courts.sort((court1, court2) => court1.dist - court2.dist);
 }
 
-function checkin({ clientId, courtId, username }) {
+function checkin({ clientId, courtId, username, checkInTime }) {
   return new Promise((resolve, reject) => {
     // Find the court and increase the current and total checkins
     //     firestoreCourtsRef.doc(courtId).get().then(doc =>{
@@ -294,7 +294,7 @@ function checkin({ clientId, courtId, username }) {
     let addToSetUpdateQuery = { clients_ids: clientId };
     if (username) {
       // Make sure that we save the checkedin users if they have them
-      addToSetUpdateQuery.usernames = username;
+      addToSetUpdateQuery.usernames = { username, checkInTime };
     }
     mongoDBCheckinsRef.update(
       { court_id: courtId },
@@ -369,7 +369,7 @@ function checkout({ clientId, courtId, username }) {
     let pullUpdateQuery = { clients_ids: clientId };
     if (username) {
       // Make sure that we remove the checkedin usernames if they have them
-      pullUpdateQuery.usernames = username;
+      pullUpdateQuery.usernames = { username };
     }
     mongoDBCheckinsRef.findAndModify(
       {
@@ -506,7 +506,7 @@ function removeUsernameOnCheckout({ username }) {
         mongoDBCheckinsRef.findAndModify(
           {
             query: { court_id: courtId },
-            update: { $pull: { usernames: username } },
+            update: { $pull: { usernames: { username } } },
             new: true
           },
           (err, doc) => {
