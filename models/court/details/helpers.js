@@ -294,7 +294,7 @@ function checkin({ clientId, courtId, username, checkInTime }) {
     let addToSetUpdateQuery = { clients_ids: clientId };
     if (username) {
       // Make sure that we save the checkedin users if they have them
-      addToSetUpdateQuery.usernames = { username, checkInTime };
+      addToSetUpdateQuery.users = { username, checkInTime };
     }
     mongoDBCheckinsRef.update(
       { court_id: courtId },
@@ -368,8 +368,8 @@ function checkout({ clientId, courtId, username }) {
     // Remove checkin record for court then decrement checkins for court
     let pullUpdateQuery = { clients_ids: clientId };
     if (username) {
-      // Make sure that we remove the checkedin usernames if they have them
-      pullUpdateQuery.usernames = { username };
+      // Make sure that we remove the checkedin users if they have them
+      pullUpdateQuery.users = { username };
     }
     mongoDBCheckinsRef.findAndModify(
       {
@@ -487,7 +487,7 @@ function removeUsernameOnCheckout({ username }) {
 
   return new Promise((resolve, reject) => {
     mongoDBCheckinsRef.findOne(
-      { usernames: { $in: [username] } },
+      { "users.username": { $in: [username] } },
       (err, doc) => {
         if (err) {
           console.log(err);
@@ -506,7 +506,7 @@ function removeUsernameOnCheckout({ username }) {
         mongoDBCheckinsRef.findAndModify(
           {
             query: { court_id: courtId },
-            update: { $pull: { usernames: { username } } },
+            update: { $pull: { users: { username } } },
             new: true
           },
           (err, doc) => {
