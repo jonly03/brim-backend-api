@@ -361,7 +361,7 @@ io.on("connection", socket => {
                   socket.id +
                   " to courts near them"
               );
-              socket.broadcast.emit("increment_nearby_online_count", courtIds);
+              socket.emit("increment_nearby_online_count", courtIds);
             }
           });
       }
