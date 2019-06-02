@@ -437,4 +437,33 @@ Router.post("/plus/uploadCourtPhoto", (req, res) => {
   });
 });
 
+Router.post("/plus/courts", (req, res) => {
+  if (!req.body.court) {
+    return res.status(500).json({ error: "court is required on the body" });
+  }
+
+  const { court } = req.body;
+
+  if (
+    !court._id ||
+    !court.name ||
+    !court.address ||
+    !court.lat ||
+    !court.lng ||
+    !court.city ||
+    !court.country ||
+    !court.photos
+  ) {
+    return res.status(500).json({
+      error:
+        "court has to have _id, name, address, lat, lng, city, country, and photos"
+    });
+  }
+
+  courtHelpers
+    .addNewCourt({ court })
+    .then(() => res.json({ success: "Successfully created new court" }))
+    .catch(error => res.status(404).json({ error }));
+});
+
 module.exports = Router;
