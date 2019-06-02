@@ -22,7 +22,9 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/ballup/backend-api#readme",
   "dependencies": {
+    "aws-sdk": "^2.466.0",
     "axios": "^0.18.0",
+    "body-parser": "^1.19.0",
     "cheerio": "^1.0.0-rc.2",
     "cloudinary": "^1.11.0",
     "dotenv": "^5.0.1",
