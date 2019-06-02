@@ -181,6 +181,30 @@ function getOneCourt(id) {
   });
 }
 
+function addCourtPhoto({ courtId, photoUrl }) {
+  console.log("adding court photos");
+  return new Promise((resolve, reject) => {
+    mongoDBCourtsRef.update(
+      { _id: courtId },
+      { $addToSet: { photos: photoUrl }, $inc: { photos_total: 1 } },
+      { upsert: false, multi: false, new: true },
+      (err, doc) => {
+        if (err) {
+          console.log(err);
+          return reject();
+        }
+        mongoDBCourtsRef.find({ _id: courtId }, (err, doc) => {
+          if (err) {
+            console.log(err);
+            return reject();
+          }
+          return resolve(doc[0]);
+        });
+      }
+    );
+  });
+}
+
 // function getCourtsNearByFirestore(latLng, radius) {
 // 	// TODO: Handle pagination
 // 	// Get data in batches
@@ -709,6 +733,7 @@ module.exports = {
   getNearbyCourts: tryGettingNearbyCourtsMongoDB,
   getAllCourts,
   getOneCourt,
+  addCourtPhoto,
   checkin,
   checkout,
   checkoutOnDisconnect,
