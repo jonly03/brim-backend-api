@@ -1,4 +1,6 @@
 const express = require("express");
+const aws = require("aws-sdk");
+const axios = require("axios");
 
 const helpers = require("./helpers");
 const courtHelpers = require("../../models/court/details/helpers");
@@ -52,29 +54,35 @@ Router.get("/courts/latLng/:lat/:lng", function(req, res) {
       console.log("Done getting nearby courts.");
       console.log("Getting court photos...");
       // courtsRes = {dist: courts:[]}
-      let getCourtPhotos = courtsRes.docs.map(court => {
-        return courtPhotosHelpers.real.getCourtPhotos(court._id);
-      });
+
+      // No need since courts now have photos
+      // TODO: Clean up
+      // let getCourtPhotos = courtsRes.docs.map(court => {
+      //   return courtPhotosHelpers.real.getCourtPhotos(court._id);
+      // });
 
       // Get placeholder photos to pic random photos from for courts with no uploaded pictures
       let getCourtPlaceholderPhotos = courtPhotosHelpers.placeholder.getPlaceholderPhotos();
 
       try {
-        Promise.all([...getCourtPhotos, getCourtPlaceholderPhotos])
+        Promise.all([
+          // ...getCourtPhotos,
+          getCourtPlaceholderPhotos
+        ])
           .then(results => {
             console.log("Done getting court photos and placeholder photos.");
             console.log("Packaging it all up...");
 
             let placeholderPhotos = results[results.length - 1];
-            let photos = results.slice(0, results.length - 1);
+            // let photos = results.slice(0, results.length - 1);
 
             // Add court photos when we have some and add placeholders for courts with no photos
             // We have a 1:1 courts to photos array
             // So same idx in courts maps to the same idx in photos
             courtsRes.docs.forEach((court, idx) => {
-              if (photos[idx].length) {
-                court.photos = photos[idx];
-              } else {
+              if (court.photos.length <= 0) {
+                //   court.photos = photos[idx];
+                // } else {
                 court.photos = [helpers.getRandomItem(placeholderPhotos)];
               }
             });
@@ -104,16 +112,18 @@ Router.get("/courts/:id", (req, res) => {
   courtHelpers
     .getOneCourt(req.params.id)
     .then(courts => {
-      courtPhotosHelpers.real
-        .getCourtPhotos(courts[0]._id)
-        .then(photos => {
-          courts[0].photos = photos.length ? photos : [];
-          res.json(courts[0]);
-        })
-        .catch(err => {
-          console.log(err);
-          res.status(500).json(err);
-        });
+      // No need since courts now have photos
+      // TODO: Clean up
+      // courtPhotosHelpers.real
+      //   .getCourtPhotos(courts[0]._id)
+      //   .then(photos => {
+      //     courts[0].photos = photos.length ? photos : [];
+      res.json(courts[0]);
+      // })
+      // .catch(err => {
+      //   console.log(err);
+      //   res.status(500).json(err);
+      // });
     })
     .catch(err => {
       console.log(err);
@@ -264,64 +274,67 @@ Router.get("/plus/courtsByCity", (req, res) => {
   courtHelpers
     .getAllCourts()
     .then(courtsRes => {
-      let getCourtPhotos = courtsRes.map(court => {
-        return courtPhotosHelpers.real.getCourtPhotos(court._id);
+      // No need since courts now have photos
+      // TODO: Clean up
+      // let getCourtPhotos = courtsRes.map(court => {
+      //   return courtPhotosHelpers.real.getCourtPhotos(court._id);
+      // });
+
+      // try {
+      //   Promise.all(getCourtPhotos)
+      //     .then(photos => {
+      let courts = {};
+      courts.total = courtsRes.length;
+      courts.photoCount = 0;
+
+      courtsRes.forEach((court, idx) => {
+        if (court.photos.length) {
+          // court.photos = photos[idx];
+          courts.photoCount += court.photos.length;
+        }
+        // else {
+        //   court.photos = [];
+        // }
       });
 
-      try {
-        Promise.all(getCourtPhotos)
-          .then(photos => {
-            let courts = {};
-            courts.total = courtsRes.length;
-            courts.photoCount = 0;
+      // Package them by city
+      let courtsByCityObj = {};
+      courtsRes.map(court => {
+        if (!courtsByCityObj[court.city]) {
+          courtsByCityObj[court.city] = [court];
+        } else {
+          courtsByCityObj[court.city].push(court);
+        }
+      });
+      courts.cityCount = Object.keys(courtsByCityObj).length;
 
-            courtsRes.forEach((court, idx) => {
-              if (photos[idx].length) {
-                court.photos = photos[idx];
-                courts.photoCount++;
-              } else {
-                court.photos = [];
-              }
-            });
-
-            // Package them by city
-            let courtsByCityObj = {};
-            courtsRes.map(court => {
-              if (!courtsByCityObj[court.city]) {
-                courtsByCityObj[court.city] = [court];
-              } else {
-                courtsByCityObj[court.city].push(court);
-              }
-            });
-            courts.cityCount = Object.keys(courtsByCityObj).length;
-
-            let courtsByCityArr = [];
-            for (const city in courtsByCityObj) {
-              courtsByCityArr.push({ [city]: courtsByCityObj[city] });
-            }
-
-            let courtsBycountryCountObj = {};
-            courtsRes.map(court => {
-              if (!courtsBycountryCountObj[court.country]) {
-                courtsBycountryCountObj[court.country] = 0;
-              } else {
-                courtsBycountryCountObj[court.country]++;
-              }
-            });
-            courts.countryCount = Object.keys(courtsBycountryCountObj).length;
-            courts.courtsByCity = courtsByCityArr;
-
-            return res.status(200).json(courts);
-          })
-          .catch(err => {
-            console.log(err);
-            res.status(500).json(err);
-          });
-      } catch (err) {
-        console.log(err);
-        res.status(500).json(err);
+      let courtsByCityArr = [];
+      for (const city in courtsByCityObj) {
+        courtsByCityArr.push({ [city]: courtsByCityObj[city] });
       }
+
+      let courtsBycountryCountObj = {};
+      courtsRes.map(court => {
+        if (!courtsBycountryCountObj[court.country]) {
+          courtsBycountryCountObj[court.country] = 0;
+        } else {
+          courtsBycountryCountObj[court.country]++;
+        }
+      });
+      courts.countryCount = Object.keys(courtsBycountryCountObj).length;
+      courts.courtsByCity = courtsByCityArr;
+
+      return res.status(200).json(courts);
+      // })
+      // .catch(err => {
+      //   console.log(err);
+      //   res.status(500).json(err);
+      // });
     })
+    // .catch (err) {
+    //   console.log(err);
+    //   res.status(500).json(err);
+    // }
     .catch(err => {
       console.log("Failed to get all courts");
       return res.send({});
@@ -333,44 +346,95 @@ Router.get("/plus/courtsById", (req, res) => {
   courtHelpers
     .getAllCourts()
     .then(courtsRes => {
-      let getCourtPhotos = courtsRes.map(court => {
-        return courtPhotosHelpers.real.getCourtPhotos(court._id);
+      // No need since courts now have photos
+      // TODO: Clean up
+      // let getCourtPhotos = courtsRes.map(court => {
+      //   return courtPhotosHelpers.real.getCourtPhotos(court._id);
+      // });
+
+      // try {
+      //   Promise.all(getCourtPhotos)
+      //     .then(photos => {
+      let courts = {};
+      courtsRes.forEach((court, idx) => {
+        if (court.photos.length) {
+          // court.photos = photos[idx];
+          courts.photoCount += court.photos.length;
+        }
+        // else {
+        //   court.photos = [];
+        // }
       });
 
-      try {
-        Promise.all(getCourtPhotos)
-          .then(photos => {
-            let courts = {};
-            courtsRes.forEach((court, idx) => {
-              if (photos[idx].length) {
-                court.photos = photos[idx];
-                courts.photoCount++;
-              } else {
-                court.photos = [];
-              }
-            });
+      // Package them by id
+      let courtsByIdObj = {};
+      courtsRes.map(court => (courtsByIdObj[court._id] = [court]));
 
-            // Package them by id
-            let courtsByIdObj = {};
-            courtsRes.map(court => (courtsByIdObj[court._id] = [court]));
+      courts.courtsById = courtsByIdObj;
 
-            courts.courtsById = courtsByIdObj;
-
-            return res.status(200).json(courts);
-          })
-          .catch(err => {
-            console.log(err);
-            res.status(500).json(err);
-          });
-      } catch (err) {
-        console.log(err);
-        res.status(500).json(err);
-      }
+      return res.status(200).json(courts);
     })
+    // .catch(err => {
+    //   console.log(err);
+    //   res.status(500).json(err);
+    // });
+    // } catch (err) {
+    //   console.log(err);
+    //   res.status(500).json(err);
+    // }
     .catch(err => {
       console.log("Failed to get all courts");
       return res.send({});
     });
+});
+
+Router.post("/plus/uploadCourtPhoto", (req, res) => {
+  const { fileUrl, fileType, fileName, courtId } = req.body;
+
+  if (
+    !fileUrl ||
+    !fileType ||
+    fileType !== "image/jpeg" ||
+    !fileName ||
+    !courtId
+  ) {
+    return res.status(500).json({
+      error:
+        "fileUrl, fileType, fileName and courtId are required in the body. Only jpeg fileType are allowed"
+    });
+  }
+
+  const buf = Buffer.from(
+    fileUrl.replace(/^data:image\/\w+;base64,/, ""),
+    "base64"
+  );
+
+  const s3 = new aws.S3();
+  const S3_BUCKET = process.env.S3_BUCKET;
+  aws.config.region = "us-east-1";
+  const s3Params = {
+    Bucket: S3_BUCKET,
+    Key: fileName,
+    Body: buf,
+    Expires: 60,
+    ContentType: fileType,
+    ACL: "public-read"
+  };
+
+  s3.upload(s3Params, (err, data) => {
+    if (err) {
+      console.log(err);
+      return res.status(404).json({ error: "Failed to " });
+    }
+
+    const photoUrl = data.Location;
+    console.log(photoUrl);
+
+    courtHelpers
+      .addCourtPhoto({ courtId, photoUrl })
+      .then(court => res.json({ court }))
+      .catch(error => res.json({ error }));
+  });
 });
 
 module.exports = Router;
