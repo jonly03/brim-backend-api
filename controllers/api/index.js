@@ -62,42 +62,45 @@ Router.get("/courts/latLng/:lat/:lng", function(req, res) {
       // });
 
       // Get placeholder photos to pic random photos from for courts with no uploaded pictures
-      let getCourtPlaceholderPhotos = courtPhotosHelpers.placeholder.getPlaceholderPhotos();
+      //let getCourtPlaceholderPhotos = courtPhotosHelpers.placeholder.getPlaceholderPhotos();
 
-      try {
-        Promise.all([
-          // ...getCourtPhotos,
-          getCourtPlaceholderPhotos
-        ])
-          .then(results => {
-            console.log("Done getting court photos and placeholder photos.");
-            console.log("Packaging it all up...");
+      // try {
+      //   Promise.all([
+      //     // ...getCourtPhotos,
+      //     getCourtPlaceholderPhotos
+      //   ])
+      //     .then(results => {
+      //       console.log("Done getting court photos and placeholder photos.");
+      //       console.log("Packaging it all up...");
 
-            let placeholderPhotos = results[results.length - 1];
-            // let photos = results.slice(0, results.length - 1);
+      //       let placeholderPhotos = results[results.length - 1];
+      // let photos = results.slice(0, results.length - 1);
 
-            // Add court photos when we have some and add placeholders for courts with no photos
-            // We have a 1:1 courts to photos array
-            // So same idx in courts maps to the same idx in photos
-            courtsRes.docs.forEach((court, idx) => {
-              if (court.photos.length <= 0) {
-                //   court.photos = photos[idx];
-                // } else {
-                court.photos = [helpers.getRandomItem(placeholderPhotos)];
-              }
-            });
+      // Add court photos when we have some and add placeholders for courts with no photos
+      // We have a 1:1 courts to photos array
+      // So same idx in courts maps to the same idx in photos
+      courtsRes.docs.forEach((court, idx) => {
+        if (court.photos.length <= 0) {
+          //   court.photos = photos[idx];
+          // } else {
+          // court.photos = [helpers.getRandomItem(placeholderPhotos)];
+          court.photos = [
+            "https://brimbasketballcourtsimages.s3.amazonaws.com/court_placeholder.JPG"
+          ];
+        }
+      });
 
-            console.log("Done packaging it all up");
-            res.status(200).json(courtsRes);
-          })
-          .catch(err => {
-            console.log(err);
-            res.status(500).json(err);
-          });
-      } catch (err) {
-        console.log(err);
-        res.status(500).json(err);
-      }
+      console.log("Done packaging it all up");
+      res.status(200).json(courtsRes);
+      // })
+      // .catch(err => {
+      //   console.log(err);
+      //   res.status(500).json(err);
+      // });
+      // } catch (err) {
+      //   console.log(err);
+      //   res.status(500).json(err);
+      // }
     })
     .catch(err => {
       console.log(err);
