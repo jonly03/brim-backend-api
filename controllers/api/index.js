@@ -389,7 +389,6 @@ Router.get("/plus/courtsById", (req, res) => {
 });
 
 Router.post("/plus/uploadCourtPhoto", (req, res) => {
-  console.log("Start file upload to s3");
   const { fileUrl, fileType, fileName, courtId } = req.body;
 
   if (
@@ -423,13 +422,11 @@ Router.post("/plus/uploadCourtPhoto", (req, res) => {
   };
 
   s3.upload(s3Params, (err, data) => {
-    console.log("file uploaded to s3");
     if (err) {
       console.log(err);
       return res.status(404).json({ error: "Failed to " });
     }
 
-    console.log("no errors uploading file to s3");
     const photoUrl = data.Location;
     console.log(photoUrl);
 
@@ -440,7 +437,7 @@ Router.post("/plus/uploadCourtPhoto", (req, res) => {
   });
 });
 
-Router.get("/plus/s3PhotoUrl", (req, res) => {
+Router.post("/plus/s3PhotoUrl", (req, res) => {
   const { fileUrl, fileType, fileName } = req.body;
 
   if (!fileUrl || !fileType || fileType !== "image/jpeg" || !fileName) {
@@ -468,13 +465,11 @@ Router.get("/plus/s3PhotoUrl", (req, res) => {
   };
 
   s3.upload(s3Params, (err, data) => {
-    console.log("file uploaded to s3");
     if (err) {
       console.log(err);
       return res.status(404).json({ error: "Failed to " });
     }
 
-    console.log("no errors uploading file to s3");
     const url = data.Location;
     console.log(url);
 
