@@ -389,6 +389,7 @@ Router.get("/plus/courtsById", (req, res) => {
 });
 
 Router.post("/plus/uploadCourtPhoto", (req, res) => {
+  console.log("Start file upload to s3");
   const { fileUrl, fileType, fileName, courtId } = req.body;
 
   if (
@@ -422,11 +423,13 @@ Router.post("/plus/uploadCourtPhoto", (req, res) => {
   };
 
   s3.upload(s3Params, (err, data) => {
+    console.log("file uploaded to s3");
     if (err) {
       console.log(err);
       return res.status(404).json({ error: "Failed to " });
     }
 
+    console.log("no errors uploading file to s3");
     const photoUrl = data.Location;
     console.log(photoUrl);
 
@@ -434,6 +437,48 @@ Router.post("/plus/uploadCourtPhoto", (req, res) => {
       .addCourtPhoto({ courtId, photoUrl })
       .then(court => res.json({ court }))
       .catch(error => res.json({ error }));
+  });
+});
+
+Router.get("/plus/s3PhotoUrl", (req, res) => {
+  const { fileUrl, fileType, fileName } = req.body;
+
+  if (!fileUrl || !fileType || fileType !== "image/jpeg" || !fileName) {
+    return res.status(500).json({
+      error:
+        "fileUrl, fileType, and fileName are required in the body. Only jpeg fileType are allowed"
+    });
+  }
+
+  const buf = Buffer.from(
+    fileUrl.replace(/^data:image\/\w+;base64,/, ""),
+    "base64"
+  );
+
+  const s3 = new aws.S3();
+  const S3_BUCKET = process.env.S3_BUCKET;
+  aws.config.region = "us-east-1";
+  const s3Params = {
+    Bucket: S3_BUCKET,
+    Key: fileName,
+    Body: buf,
+    Expires: 60,
+    ContentType: fileType,
+    ACL: "public-read"
+  };
+
+  s3.upload(s3Params, (err, data) => {
+    console.log("file uploaded to s3");
+    if (err) {
+      console.log(err);
+      return res.status(404).json({ error: "Failed to " });
+    }
+
+    console.log("no errors uploading file to s3");
+    const url = data.Location;
+    console.log(url);
+
+    return res.json({ url });
   });
 });
 
