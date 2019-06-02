@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const bodyParser = require("body-parser");
 const courtHelpers = require("./models/court/details/helpers");
 const Users = require("./models").users;
 const { Expo } = require("expo-server-sdk");
@@ -15,6 +16,11 @@ var mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+app.use(bodyParser.json({ limit: "500000000000000000mb" }));
+app.use(
+  bodyParser.urlencoded({ limit: "500000000000000000mb", extended: true })
+);
 
 // Enable CORS
 // TODO only allow requests from hoopsgram.com
