@@ -397,7 +397,7 @@ Router.post("/plus/uploadCourtPhoto", (req, res) => {
   if (
     !fileUrl ||
     !fileType ||
-    !fileType.includes("image/") ||
+    fileType.includes("image/") === false ||
     !fileName ||
     !courtId
   ) {
@@ -442,8 +442,12 @@ Router.post("/plus/uploadCourtPhoto", (req, res) => {
 
 Router.post("/plus/s3PhotoUrl", (req, res) => {
   const { fileUrl, fileType, fileName } = req.body;
-
-  if (!fileUrl || !fileType || !fileType.includes("image/") || !fileName) {
+  if (
+    !fileUrl ||
+    !fileType ||
+    fileType.includes("image/") === false ||
+    !fileName
+  ) {
     return res.status(500).json({
       error:
         "fileUrl, fileType, and fileName are required in the body. Only image fileTypes are allowed"
