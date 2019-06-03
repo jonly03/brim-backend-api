@@ -442,6 +442,9 @@ Router.post("/plus/uploadCourtPhoto", (req, res) => {
 
 Router.post("/plus/s3PhotoUrl", (req, res) => {
   const { fileUrl, fileType, fileName } = req.body;
+  console.log(fileUrl);
+  console.log(fileType);
+  console.log(fileName);
   if (
     !fileUrl ||
     !fileType ||
