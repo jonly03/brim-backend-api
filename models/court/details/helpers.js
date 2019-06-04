@@ -225,13 +225,32 @@ function addNewCourt({ court }) {
       reviews_total: 0,
       nearby_online_count: 0
     };
-    mongoDBCourtsRef.insert(courtInfo, (error, doc) => {
-      if (error) {
-        console.log(error);
-        return reject(error);
-      }
-      return resolve();
-    });
+
+    // Update who is around this court by checking how many people are around the nearest court in 15 mi radius
+    locationHelpers
+      .getNearbyDocs({
+        latLng: { lat, lng },
+        model: mongoDBCourtsRef,
+        mileRadius: 15
+      })
+      .then(res => {
+        let { docs: courts } = res;
+        if (courts && courts.length > 0) {
+          courtInfo.nearby_online_count = courts[0].nearby_online_count;
+        }
+        mongoDBCourtsRef.insert(courtInfo, (error, doc) => {
+          if (error) {
+            console.log(error);
+            return reject(error);
+          }
+          return resolve();
+        });
+      })
+      .catch(error => {
+        console.log(
+          `failed to get courts near new court at lat:${lat}, lng: ${lng}`
+        );
+      });
   });
 }
 
