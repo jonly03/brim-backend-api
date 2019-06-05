@@ -23,7 +23,6 @@ function getLocDetails(coords) {
       .reverse({ lat: coords.lat, lon: coords.lng })
       .then(res => {
         const locDetails = res[0];
-        console.log(locDetails);
 
         // Address
         const address = locDetails.formattedAddress;
@@ -216,10 +215,14 @@ function removeCourt({ courtId }) {
 
 function updateCourt({ courtId, updates }) {
   return new Promise((resolve, reject) => {
-    mongoDBCourtsRef.update({ _id: courtId }, { ...updates }, (err, doc) => {
-      if (err) return reject(err);
-      return resolve();
-    });
+    mongoDBCourtsRef.update(
+      { _id: courtId },
+      { $set: { ...updates } },
+      (err, doc) => {
+        if (err) return reject(err);
+        return resolve();
+      }
+    );
   });
 }
 

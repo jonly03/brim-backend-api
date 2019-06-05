@@ -64,9 +64,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/location/:lat/:lng", (req, res) => {
-  console.log(req.params.lat);
-  console.log(req.params.lng);
-
   if (
     !req.params ||
     !req.params.lat ||
