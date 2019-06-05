@@ -205,6 +205,15 @@ function addCourtPhoto({ courtId, photoUrl }) {
   });
 }
 
+function removeCourt({ courtId }) {
+  return new Promise((resolve, reject) => {
+    mongoDBCourtsRef.remove({ _id: courtId }, (err, doc) => {
+      if (err) return reject(err);
+      return resolve();
+    });
+  });
+}
+
 function addNewCourt({ court }) {
   console.log("adding new court ");
   return new Promise((resolve, reject) => {
@@ -784,6 +793,7 @@ module.exports = {
   getOneCourt,
   addCourtPhoto,
   addNewCourt,
+  removeCourt,
   checkin,
   checkout,
   checkoutOnDisconnect,

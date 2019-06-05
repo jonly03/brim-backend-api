@@ -516,4 +516,16 @@ Router.post("/plus/courts", (req, res) => {
     .catch(error => res.status(404).json({ error }));
 });
 
+Router.delete("/plus/courts/:courtId", (req, res) => {
+  if (!req.params || !req.params.courtId) {
+    return res.status(500).json({ error: "courtId is required request param" });
+  }
+
+  const { courtId } = req.params;
+  courtHelpers
+    .removeCourt({ courtId })
+    .then(() => res.status(200).json({ success: "deleted court" }))
+    .catch(error => res.status(400).json({ error }));
+});
+
 module.exports = Router;
