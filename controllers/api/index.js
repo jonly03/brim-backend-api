@@ -516,6 +516,23 @@ Router.post("/plus/courts", (req, res) => {
     .catch(error => res.status(404).json({ error }));
 });
 
+Router.post("/plus/courts/:courtId", (req, res) => {
+  if (!req.params || !req.params.courtId) {
+    return res.status(500).json({ error: "courtId is required request param" });
+  }
+
+  if (!req.body || !req.body.updates) {
+    return res.status(500).json({ error: "the body needs an updates object" });
+  }
+
+  const { courtId } = req.params;
+  const { updates } = req.body;
+  courtHelpers
+    .updateCourt({ courtId, updates })
+    .then(() => res.status(200).json({ success: "updated court" }))
+    .catch(error => res.status(400).json({ error }));
+});
+
 Router.delete("/plus/courts/:courtId", (req, res) => {
   if (!req.params || !req.params.courtId) {
     return res.status(500).json({ error: "courtId is required request param" });
