@@ -199,6 +199,7 @@ notifyUsersNearACourt = ({ type, info }) => {
           latLng.lng
         }`
       );
+      console.log(users);
       console.log(
         "Filtering out users with invalid push tokens and the user who initiated the notification (if a username exists)..."
       );
@@ -218,6 +219,7 @@ notifyUsersNearACourt = ({ type, info }) => {
       console.log(
         "Done filtering out users with invalid push tokens and the user who initiated the notification (if a username exists)"
       );
+      console.log(potentialUsersToNotify);
       console.log(
         "Getting courts of interest for our potential users to notify..."
       );
@@ -235,6 +237,8 @@ notifyUsersNearACourt = ({ type, info }) => {
           console.log(
             "Done getting courts of interest for our potential users to notify"
           );
+
+          console.log(allPotentialUsersToNotifyCourtsOfInterest);
           console.log(
             "Keeping only users who specified that they want to be notified about the court in which the message came from..."
           );
@@ -249,6 +253,7 @@ notifyUsersNearACourt = ({ type, info }) => {
           console.log(
             "Done keeping only out users who specified that they want to be notified about the court in which the message came from"
           );
+          console.log(allUsersToNotify);
 
           // Create notifications
           let notifications = [];
