@@ -8,7 +8,7 @@ const save = ({ username, token, lat, lng }) => {
   return new Promise((resolve, reject) => {
     Users.update(
       { token },
-      { $set: { username, lat, lng, courtsOfNoInterest: "" } },
+      { $set: { username, lat, lng, courtsOfInterest: "" } },
       { upsert: true },
       error => {
         if (error) {
@@ -48,7 +48,7 @@ const updateLocation = ({ username, lat, lng }) => {
   });
 };
 
-const addToCourtsOfNoInterest = ({ username, courtId }) => {
+const addToCourtsOfInterest = ({ username, courtId }) => {
   return new Promise((resolve, reject) => {
     Users.find({ username }, (error, docs) => {
       if (error) {
@@ -60,26 +60,26 @@ const addToCourtsOfNoInterest = ({ username, courtId }) => {
         return resolve({ error: `user: ${username} does not exist` });
       }
 
-      // courtsOfNoInterest is a comma separated string of courtIds
+      // courtsOfInterest is a comma separated string of courtIds
       // Make sure we don't already have it
       const courtIds =
-        docs[0].courtsOfNoInterest.length > 0
-          ? docs[0].courtsOfNoInterest.split(",")
+        docs[0].courtsOfInterest.length > 0
+          ? docs[0].courtsOfInterest.split(",")
           : [];
       if (courtIds.indexOf(courtId) !== -1) {
         return resolve({
-          success: `Court: ${courtId} already marked as non interesting to user: ${username}`
+          success: `Court: ${courtId} already marked as of interest to user: ${username}`
         });
       }
 
       courtIds.push(courtId);
-      const courtsOfNoInterest =
+      const courtsOfInterest =
         courtIds.length > 1 ? courtIds.join(",") : courtIds.toString();
 
-      Users.update({ username }, { $set: { courtsOfNoInterest } }, error => {
+      Users.update({ username }, { $set: { courtsOfInterest } }, error => {
         if (error) {
           console.log(
-            `Failed to add court: ${courtId} to user: ${username} courtsOfNoInterest with error`
+            `Failed to add court: ${courtId} to user: ${username} courtsOfInterest with error`
           );
           console.log(error);
           return reject({ error });
@@ -91,7 +91,7 @@ const addToCourtsOfNoInterest = ({ username, courtId }) => {
   });
 };
 
-const removeToCourtsOfNoInterest = ({ username, courtId }) => {
+const removeFromCourtsOfInterest = ({ username, courtId }) => {
   return new Promise((resolve, reject) => {
     Users.find({ username }, (error, docs) => {
       if (error) {
@@ -103,16 +103,16 @@ const removeToCourtsOfNoInterest = ({ username, courtId }) => {
         return resolve({ error: `user: ${username} does not exist` });
       }
 
-      // courtsOfNoInterest is a comma separated string of courtIds
+      // courtsOfInterest is a comma separated string of courtIds
       // Make sure we have only unique ids
       let courtIds =
-        docs[0].courtsOfNoInterest.length > 0
-          ? docs[0].courtsOfNoInterest.split(",")
+        docs[0].courtsOfInterest.length > 0
+          ? docs[0].courtsOfInterest.split(",")
           : [];
       const courtIdx = courtIds.indexOf(courtId);
       if (courtIdx === -1) {
         return resolve({
-          success: `Court: ${courtId} already not in the courtsOfNoInterest to user: ${username}`
+          success: `Court: ${courtId} not marked as a courtsOfInterest to user: ${username}`
         });
       }
 
@@ -121,13 +121,13 @@ const removeToCourtsOfNoInterest = ({ username, courtId }) => {
         ...courtIds.slice(0, courtIdx),
         ...courtIds.slice(courtIdx + 1)
       ];
-      const courtsOfNoInterest =
+      const courtsOfInterest =
         courtIds.length > 1 ? courtIds.join(",") : courtIds.toString();
 
-      Users.update({ username }, { $set: { courtsOfNoInterest } }, error => {
+      Users.update({ username }, { $set: { courtsOfInterest } }, error => {
         if (error) {
           console.log(
-            `Failed to remove court: ${courtId} from user: ${username} courtsOfNoInterest with error`
+            `Failed to remove court: ${courtId} from user: ${username} courtsOfInterest with error`
           );
           console.log(error);
           return reject({ error });
@@ -139,7 +139,7 @@ const removeToCourtsOfNoInterest = ({ username, courtId }) => {
   });
 };
 
-const getCourtsOfNoInterest = ({ username }) => {
+const getCourtsOfInterest = ({ username }) => {
   return new Promise((resolve, reject) => {
     Users.find({ username }, (error, docs) => {
       if (error) {
@@ -152,8 +152,8 @@ const getCourtsOfNoInterest = ({ username }) => {
       }
 
       const courtIds =
-        docs[0].courtsOfNoInterest.length > 0
-          ? docs[0].courtsOfNoInterest.split(",")
+        docs[0].courtsOfInterest.length > 0
+          ? docs[0].courtsOfInterest.split(",")
           : [];
 
       return resolve({ courtIds });
@@ -197,9 +197,9 @@ const remove = ({ username }) => {
 module.exports = {
   save,
   updateLocation,
-  addToCourtsOfNoInterest,
-  removeToCourtsOfNoInterest,
-  getCourtsOfNoInterest,
+  addToCourtsOfInterest,
+  removeFromCourtsOfInterest,
+  getCourtsOfInterest,
   getUsersNearAPoint,
   remove
   // getUserToken

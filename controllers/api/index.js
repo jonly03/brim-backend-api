@@ -187,7 +187,7 @@ Router.post("/users/location", (req, res) => {
     .catch(error => res.status(404).json(error));
 });
 
-Router.get("/users/courts/no_interest/:username", (req, res) => {
+Router.get("/users/courts/interest/:username", (req, res) => {
   const { username } = req.params;
 
   if (!username) {
@@ -196,12 +196,12 @@ Router.get("/users/courts/no_interest/:username", (req, res) => {
     });
   }
 
-  Users.getCourtsOfNoInterest({ username })
-    .then(courtsOfNoInterest => res.status(200).json(courtsOfNoInterest))
+  Users.getCourtsOfInterest({ username })
+    .then(courtsOfInterest => res.status(200).json(courtsOfInterest))
     .catch(error => res.status(404).json(error));
 });
 
-Router.post("/users/courts/no_interest", (req, res) => {
+Router.post("/users/courts/interest", (req, res) => {
   const { username, courtId } = req.body;
 
   if (!username || !courtId) {
@@ -211,16 +211,16 @@ Router.post("/users/courts/no_interest", (req, res) => {
   }
 
   console.log(
-    `Adding court: ${courtId} on user: @${username} list of no interest courts`
+    `Adding court: ${courtId} on user: @${username} list of courts they are interested in`
   );
 
-  Users.addToCourtsOfNoInterest({ username, courtId })
+  Users.addToCourtsOfInterest({ username, courtId })
     .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
 });
 
-Router.delete("/users/courts/no_interest", (req, res) => {
-  console.log("In DELETE route /user/courts/no_interest");
+Router.delete("/users/courts/interest", (req, res) => {
+  console.log("In DELETE route /user/courts/interest");
   const { username, courtId } = req.body;
   console.log(`Username: ${username} courtId: ${courtId}`);
 
@@ -231,10 +231,10 @@ Router.delete("/users/courts/no_interest", (req, res) => {
   }
 
   console.log(
-    `Removing court: ${courtId} on user: @${username} list of no interest courts`
+    `Removing court: ${courtId} from user: @${username} list of courts of interest`
   );
 
-  Users.removeToCourtsOfNoInterest({ username, courtId })
+  Users.removeFromCourtsOfInterest({ username, courtId })
     .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
 });

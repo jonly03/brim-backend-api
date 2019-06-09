@@ -219,35 +219,35 @@ notifyUsersNearACourt = ({ type, info }) => {
         "Done filtering out users with invalid push tokens and the user who initiated the notification (if a username exists)"
       );
       console.log(
-        "Getting courts of no interest for our potential users to notify..."
+        "Getting courts of interest for our potential users to notify..."
       );
-      const getPotentialUsersToNotifyCourtsOfNoInterest = potentialUsersToNotify.map(
+      const getPotentialUsersToNotifyCourtsOfInterest = potentialUsersToNotify.map(
         user =>
-          Users.getCourtsOfNoInterest({
+          Users.getCourtsOfInterest({
             username: user.username
           })
       );
 
-      // Finally weed out users who specified that they don't want to be notified about the court in which the message came from
+      // Finally only keep users who specified that they want to be notified about the court in which the message came from
       let allUsersToNotify = [];
-      Promise.all(getPotentialUsersToNotifyCourtsOfNoInterest)
-        .then(allPotentialUsersToNotifyCourtsOfNoInterest => {
+      Promise.all(getPotentialUsersToNotifyCourtsOfInterest)
+        .then(allPotentialUsersToNotifyCourtsOfInterest => {
           console.log(
-            "Done getting courts of no interest for our potential users to notify"
+            "Done getting courts of interest for our potential users to notify"
           );
           console.log(
-            "Weeding out users who specified that they don't want to be notified about the court in which the message came from..."
+            "Keeping only users who specified that they want to be notified about the court in which the message came from..."
           );
-          allUsersToNotify = allPotentialUsersToNotifyCourtsOfNoInterest.map(
-            (potentialUserToNotifyCourtsOfNoInterest, idx) => {
-              const { courtIds } = potentialUserToNotifyCourtsOfNoInterest;
-              if (courtIds.indexOf(courtId) === -1) {
+          allUsersToNotify = allPotentialUsersToNotifyCourtsOfInterest.map(
+            (potentialUserToNotifyCourtsOfInterest, idx) => {
+              const { courtIds } = potentialUserToNotifyCourtsOfInterest;
+              if (courtIds.indexOf(courtId) !== -1) {
                 return potentialUsersToNotify[idx];
               }
             }
           );
           console.log(
-            "Done weeding out users who specified that they don't want to be notified about the court in which the message came from"
+            "Done keeping only out users who specified that they want to be notified about the court in which the message came from"
           );
 
           // Create notifications
@@ -314,7 +314,7 @@ notifyUsersNearACourt = ({ type, info }) => {
         })
         .catch(error => {
           console.log(
-            "Failed to send push notification because getCourtsOfNoInterest failed"
+            "Failed to send push notification because getcourtsOfInterest failed"
           );
           console.log(error);
         });
