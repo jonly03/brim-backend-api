@@ -244,11 +244,14 @@ notifyUsersNearACourt = ({ type, info }) => {
           console.log("potentialUsersToNotify");
           console.log(potentialUsersToNotify);
 
-          allUsersToNotify = allPotentialUsersToNotifyCourtsOfInterest.filter(
+          allUsersToNotify = [];
+
+          allPotentialUsersToNotifyCourtsOfInterest.map(
             (potentialUserToNotifyCourtsOfInterest, idx) => {
               const { courtIds } = potentialUserToNotifyCourtsOfInterest;
-
-              return courtIds.indexOf(courtId) !== -1;
+              if (courtIds.indexOf(courtId) !== -1) {
+                allUsersToNotify.push(potentialUsersToNotify[idx]);
+              }
             }
           );
           console.log(
