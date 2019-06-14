@@ -288,7 +288,7 @@ notifyUsersNearACourt = ({ type, info }) => {
               to: pushToken,
               sound: "default",
               body,
-              data: { courtId, sender, courtName }
+              data: { courtId, sender, courtName, type }
             });
           }
 
