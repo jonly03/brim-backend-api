@@ -388,7 +388,7 @@ function checkin({ clientId, courtId, username, checkInTime }) {
     let addToSetUpdateQuery = { clients_ids: clientId };
     if (username) {
       // Make sure that we save the checkedin users if they have them
-      addToSetUpdateQuery.users = { username, checkInTime };
+      addToSetUpdateQuery.users.push({ username, checkInTime });
     }
     mongoDBCheckinsRef.update(
       { court_id: courtId },
