@@ -392,7 +392,10 @@ function checkin({ clientId, courtId, username, checkInTime }) {
     }
     mongoDBCheckinsRef.update(
       { court_id: courtId },
-      { $addToSet: addToSetUpdateQuery },
+      {
+        $addToSet: { clients_ids: clientId },
+        $addToSet: { users: { username, checkInTime } }
+      },
       { upsert: true, new: true },
       (err, doc) => {
         if (err) {
