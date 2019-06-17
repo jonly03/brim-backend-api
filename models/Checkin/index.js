@@ -9,9 +9,12 @@ const getCheckedInUsers = ({ court_id, requestor }) => {
 
       if (!doc || !doc[0]) return resolve([]);
 
+      // Non identified users can checkin
+      if (!doc[0].users) {
+        return resolve([]);
+      }
+
       // Make sure to not return the username who initiated this request if they are checked in
-      console.log(doc);
-      console.log(doc[0]);
       const checkedInUsers = doc[0].users.filter(
         user => user.username !== requestor
       );
