@@ -523,7 +523,7 @@ function checkout({ clientId, courtId, username }) {
     console.log(`clientId/${clientId} courtId/${courtId}`);
 
     // Remove checkin record for court then decrement checkins for court
-    let pullUpdateQuery = { users: { clients_id: clientId } };
+    let pullUpdateQuery = { users: { client_id: clientId } };
 
     mongoDBCheckinsRef.findAndModify(
       {
