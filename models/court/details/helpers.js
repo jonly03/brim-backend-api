@@ -396,12 +396,17 @@ function checkin({ clientId, courtId, username, checkInTime }) {
           "Nobody checked into this court yet. Creating new checkin record"
         );
         const newCheckinRecord = {
-          court_id: courtId,
-          clients_ids: [clientId]
+          court_id: courtId
+        };
+        const user = {
+          client_id: clientId,
+          checkInTime
         };
         if (username) {
-          newCheckinRecord.users = [{ username, checkInTime }];
+          user.username = username;
         }
+
+        newCheckinRecord.users = [user];
         mongoDBCheckinsRef.save(newCheckinRecord, (err, doc) => {
           if (err) {
             console.log("Failed to save new checkin record");
@@ -439,16 +444,19 @@ function checkin({ clientId, courtId, username, checkInTime }) {
         console.log(
           "Somebody already checked into this court already. Adding to client_ids and users sets"
         );
-        let addToSetUpdateQuery = { clients_ids: clientId };
+        const newUser = {
+          client_id: clientId,
+          checkInTime
+        };
         if (username) {
           // Make sure that we save the checkedin users if they have them
-          addToSetUpdateQuery.users = { username, checkInTime };
+          newUser.username = username;
         }
 
         mongoDBCheckinsRef.update(
           { court_id: courtId },
           {
-            $addToSet: addToSetUpdateQuery
+            $addToSet: { users: newUser }
           },
           (err, doc) => {
             if (err) {
