@@ -396,12 +396,45 @@ function checkin({ clientId, courtId, username, checkInTime }) {
           "Nobody checked into this court yet. Creating new checkin record"
         );
         const newCheckinRecord = {
+          court_id: courtId,
           clients_ids: [clientId]
         };
         if (username) {
           newCheckinRecord.users = [{ username, checkInTime }];
         }
-        mongoDBCheckinsRef.save(newCheckinRecord);
+        mongoDBCheckinsRef.save(newCheckinRecord, (err, doc) => {
+          if (err) {
+            console.log("Failed to save new checkin record");
+            reject(err);
+          } else {
+            // Increment checkins for court
+            mongoDBCourtsRef.findAndModify(
+              {
+                query: { _id: courtId },
+                update: {
+                  $inc: {
+                    checkins_current: 1,
+                    checkins_total: 1
+                  }
+                },
+                new: true
+              },
+              (err, doc) => {
+                if (err) {
+                  console.log(err);
+                  return reject(err);
+                }
+
+                console.log("new doc after checkin into court");
+                console.log(doc);
+                resolve({
+                  current: doc.checkins_current,
+                  total: doc.checkins_total
+                });
+              }
+            );
+          }
+        });
       } else {
         console.log(
           "Somebody already checked into this court already. Adding to client_ids and users sets"
@@ -421,37 +454,37 @@ function checkin({ clientId, courtId, username, checkInTime }) {
             if (err) {
               console.log(err);
               reject(err);
+            } else {
+              // Increment checkins for court
+              mongoDBCourtsRef.findAndModify(
+                {
+                  query: { _id: courtId },
+                  update: {
+                    $inc: {
+                      checkins_current: 1,
+                      checkins_total: 1
+                    }
+                  },
+                  new: true
+                },
+                (err, doc) => {
+                  if (err) {
+                    console.log(err);
+                    return reject(err);
+                  }
+
+                  console.log("new doc after checkin into court");
+                  console.log(doc);
+                  resolve({
+                    current: doc.checkins_current,
+                    total: doc.checkins_total
+                  });
+                }
+              );
             }
           }
         );
       }
-
-      // Increment checkins for court
-      mongoDBCourtsRef.findAndModify(
-        {
-          query: { _id: courtId },
-          update: {
-            $inc: {
-              checkins_current: 1,
-              checkins_total: 1
-            }
-          },
-          new: true
-        },
-        (err, doc) => {
-          if (err) {
-            console.log(err);
-            return reject(err);
-          }
-
-          console.log("new doc after checkin into court");
-          console.log(doc);
-          resolve({
-            current: doc.checkins_current,
-            total: doc.checkins_total
-          });
-        }
-      );
     });
   });
 }
