@@ -553,17 +553,28 @@ function checkout({ clientId, courtId }) {
             console.log(
               "Done removing court record because no one was left checked in"
             );
+
+            decrementCourtCheckins(courtId)
+              .then(checkins => {
+                console.log("Done decrementing checkins for court");
+                resolve(checkins);
+              })
+              .catch(err => {
+                console.log("Failed to decrement checkins");
+                reject(err);
+              });
           });
+        } else {
+          decrementCourtCheckins(courtId)
+            .then(checkins => {
+              console.log("Done decrementing checkins for court");
+              resolve(checkins);
+            })
+            .catch(err => {
+              console.log("Failed to decrement checkins");
+              reject(err);
+            });
         }
-        decrementCourtCheckins(courtId)
-          .then(checkins => {
-            console.log("Done decrementing checkins for court");
-            resolve(checkins);
-          })
-          .catch(err => {
-            console.log("Failed to decrement checkins");
-            reject(err);
-          });
       }
     );
   });
