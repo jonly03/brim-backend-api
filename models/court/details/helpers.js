@@ -528,7 +528,8 @@ function checkout({ clientId, courtId }) {
     mongoDBCheckinsRef.findAndModify(
       {
         query: { court_id: courtId },
-        update: { $pull: pullUpdateQuery }
+        update: { $pull: pullUpdateQuery },
+        new: true
       },
       (err, doc) => {
         if (err) {
@@ -541,7 +542,7 @@ function checkout({ clientId, courtId }) {
 
         // remove the court record if no one is left checked in
         // No need to wait for this operation
-        if (doc && doc.users && !doc.users.length) {
+        if (doc && doc.users && doc.users.length <= 0) {
           console.log("no one left checkedin after update...");
           console.log("removing court record...");
           mongoDBCheckinsRef.remove({ court_id: courtId }, err => {
