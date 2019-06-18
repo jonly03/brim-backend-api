@@ -391,7 +391,7 @@ function checkin({ clientId, courtId, username, checkInTime }) {
         console.log("Failed to find checkin record for court_id: ", courtId);
         return reject(err);
       }
-      if (docs.length <= 0) {
+      if (!docs || docs.length <= 0) {
         console.log(
           "Nobody checked into this court yet. Creating new checkin record"
         );
