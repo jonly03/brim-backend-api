@@ -873,7 +873,7 @@ module.exports = {
   checkin,
   checkout,
   checkoutOnDisconnect,
-  removeUsernameOnCheckout,
+  // removeUsernameOnCheckout,
   isClientOnline,
   incrementCourtsNearbyOnlineCounts,
   decrementCourtsNearbyOnlineCounts
