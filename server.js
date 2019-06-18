@@ -501,7 +501,6 @@ io.on("connection", socket => {
     courtHelpers
       .checkoutOnDisconnect({ clientId: socket.id })
       .then(courtInfo => {
-        console.log("courtInfo checkoutOnDisconnect", courtInfo);
         if (courtInfo) {
           const { _id: courtId, checkins_current: checkins } = courtInfo;
           // Don't worry about emitting the message back to the sender because they are disconnected
