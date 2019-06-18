@@ -15,7 +15,7 @@ const getCheckedInUsers = ({ court_id, requestor, clientId }) => {
         user => user.client_id !== clientId
       );
 
-      resolve(checkedInUsers);
+      resolve({ checkedInUsers });
     });
   });
 };
