@@ -505,12 +505,8 @@ io.on("connection", socket => {
           const { _id: courtId, checkins_current: checkins } = courtInfo;
           // Don't worry about emitting the message back to the sender because they are disconnected
           // Just broadcast the message to every other clients still online
-          if (courtId && checkins) {
-            console.log("Broadcasting disconnected client checkout message");
-            socket.broadcast.emit("checkedout", { courtId, checkins });
-          } else {
-            console.log("Client was not checked in");
-          }
+          console.log("Broadcasting disconnected client checkout message");
+          socket.broadcast.emit("checkedout", { courtId, checkins });
         }
       })
       .catch(err => {
