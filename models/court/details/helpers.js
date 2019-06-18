@@ -604,7 +604,7 @@ function checkoutOnDisconnect({ clientId }) {
       console.log(`ClientId/${clientId} was checked into courtId/${courtId}`);
       console.log("Checking them out...");
 
-      return checkout({ clientId, courtId });
+      resolve(checkout({ clientId, courtId }));
       // let pullUpdateQuery = { clients_ids: clientId };
       // mongoDBCheckinsRef.findAndModify(
       //   {
