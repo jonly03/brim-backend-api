@@ -501,8 +501,8 @@ io.on("connection", socket => {
     courtHelpers
       .checkoutOnDisconnect({ clientId: socket.id })
       .then(courtInfo => {
-        if (courtInfo !== null && courtInfo) {
-          const { courtId, checkins } = courtInfo;
+        if (courtInfo) {
+          const { _id: courtId, checkins_current: checkins } = courtInfo;
           // Don't worry about emitting the message back to the sender because they are disconnected
           // Just broadcast the message to every other clients still online
           if (courtId && checkins) {
