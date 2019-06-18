@@ -555,9 +555,9 @@ function checkout({ clientId, courtId }) {
             );
 
             decrementCourtCheckins(courtId)
-              .then(checkins => {
+              .then(courtInfo => {
                 console.log("Done decrementing checkins for court");
-                resolve(checkins);
+                resolve(courtInfo);
               })
               .catch(err => {
                 console.log("Failed to decrement checkins");
@@ -566,9 +566,9 @@ function checkout({ clientId, courtId }) {
           });
         } else {
           decrementCourtCheckins(courtId)
-            .then(checkins => {
+            .then(courtInfo => {
               console.log("Done decrementing checkins for court");
-              resolve(checkins);
+              resolve(courtInfo);
             })
             .catch(err => {
               console.log("Failed to decrement checkins");
@@ -706,11 +706,7 @@ function decrementCourtCheckins(courtId) {
         console.log("new doc after checkout of court");
         console.log(doc);
 
-        if (doc.checkins_current) {
-          resolve({ current: doc.checkins_current });
-        } else {
-          resolve({ current: 0 });
-        }
+        resolve(doc);
       }
     );
   });
