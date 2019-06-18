@@ -523,16 +523,12 @@ function checkout({ clientId, courtId, username }) {
     console.log(`clientId/${clientId} courtId/${courtId}`);
 
     // Remove checkin record for court then decrement checkins for court
-    let pullUpdateQuery = { clients_ids: clientId };
-    if (username) {
-      // Make sure that we remove the checkedin users if they have them
-      pullUpdateQuery.users = { username };
-    }
+    let pullUpdateQuery = { users: { clients_id: clientId } };
+
     mongoDBCheckinsRef.findAndModify(
       {
         query: { court_id: courtId },
-        update: { $pull: pullUpdateQuery },
-        new: true
+        update: { $pull: pullUpdateQuery }
       },
       (err, doc) => {
         if (err) {
@@ -545,7 +541,7 @@ function checkout({ clientId, courtId, username }) {
 
         // remove the court record if no one is left checked in
         // No need to wait for this operation
-        if (doc && doc.clients_ids && !doc.clients_ids.length) {
+        if (doc && doc.users && !doc.users.length) {
           console.log("no one left checkedin after update...");
           console.log("removing court record...");
           mongoDBCheckinsRef.remove({ court_id: courtId }, err => {
