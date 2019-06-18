@@ -416,7 +416,7 @@ io.on("connection", socket => {
 
   // Keep an ear out for when clients disconnect so we can check them out
   socket.on("checkout", data => {
-    const { courtId, sender: username } = data;
+    const { courtId } = data;
 
     // Check clients out when we receive the checkout message
     console.log(
@@ -427,7 +427,7 @@ io.on("connection", socket => {
     );
     console.log("checking client out...");
     courtHelpers
-      .checkout({ clientId: socket.id, courtId, username })
+      .checkout({ clientId: socket.id, courtId })
       .then(checkins => {
         console.log(
           "Done checking clientId/" + socket.id + " out of courtId/" + courtId
@@ -481,19 +481,19 @@ io.on("connection", socket => {
     socket.broadcast.emit("chatroom_messages_history", history);
   });
 
-  socket.on("remove_username_on_checkout", data => {
-    const { username } = data;
-    console.log(
-      `App closed and ${username} was checked into a court. Checking them out`
-    );
-    courtHelpers
-      .removeUsernameOnCheckout({ username })
-      .then(() => {})
-      .catch(err => {
-        console.log(`Failed to remove ${username} from checkins`);
-        console.log(err);
-      });
-  });
+  // socket.on("remove_username_on_checkout", data => {
+  //   const { username } = data;
+  //   console.log(
+  //     `App closed and ${username} was checked into a court. Checking them out`
+  //   );
+  //   courtHelpers
+  //     .removeUsernameOnCheckout({ username })
+  //     .then(() => {})
+  //     .catch(err => {
+  //       console.log(`Failed to remove ${username} from checkins`);
+  //       console.log(err);
+  //     });
+  // });
 
   // Check clients out when they go offline and notify courts near them to decrement they nearby online counts
   socket.on("disconnect", () => {
