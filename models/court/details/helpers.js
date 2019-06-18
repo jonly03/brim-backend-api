@@ -385,55 +385,74 @@ function checkin({ clientId, courtId, username, checkInTime }) {
       `Anonymously checking clientId/${clientId} into courtId/${courtId}`
     );
     // Add the checkin record for the court then increment checkins for court
-    let addToSetUpdateQuery = { clients_ids: clientId };
-    if (username) {
-      // Make sure that we save the checkedin users if they have them
-      addToSetUpdateQuery.users = { username, checkInTime };
-    }
-    console.log("addToSetUpdateQuery: ", addToSetUpdateQuery);
-    mongoDBCheckinsRef.update(
-      { court_id: courtId },
-      {
-        $addToSet: addToSetUpdateQuery
-      },
-      { upsert: true, new: true },
-      (err, doc) => {
-        if (err) {
-          console.log(err);
-          reject(err);
+    // First try to find it
+    mongoDBCheckinsRef.find({ court_id: courtId }, (err, docs) => {
+      if (err) {
+        console.log("Failed to find checkin record for court_id: ", courtId);
+        return reject(err);
+      }
+      if (docs.length <= 0) {
+        console.log(
+          "Nobody checked into this court yet. Creating new checkin record"
+        );
+        const newCheckinRecord = {
+          clients_ids: [clientId]
+        };
+        if (username) {
+          newCheckinRecord.users = [{ username, checkInTime }];
+        }
+        mongoDBCheckinsRef.save(newCheckinRecord);
+      } else {
+        console.log(
+          "Somebody already checked into this court already. Adding to client_ids and users sets"
+        );
+        let addToSetUpdateQuery = { clients_ids: clientId };
+        if (username) {
+          // Make sure that we save the checkedin users if they have them
+          addToSetUpdateQuery.users = { username, checkInTime };
         }
 
-        console.log("new document after update...");
-        console.log(doc);
-        console.log("increment court checkin count");
-        // Increment checkins for court
-        mongoDBCourtsRef.findAndModify(
+        mongoDBCheckinsRef.update(
+          { court_id: courtId },
           {
-            query: { _id: courtId },
-            update: {
-              $inc: {
-                checkins_current: 1,
-                checkins_total: 1
-              }
-            },
-            new: true
+            $addToSet: addToSetUpdateQuery
           },
           (err, doc) => {
             if (err) {
               console.log(err);
-              return reject(err);
+              reject(err);
             }
-
-            console.log("new doc after checkin into court");
-            console.log(doc);
-            resolve({
-              current: doc.checkins_current,
-              total: doc.checkins_total
-            });
           }
         );
       }
-    );
+
+      // Increment checkins for court
+      mongoDBCourtsRef.findAndModify(
+        {
+          query: { _id: courtId },
+          update: {
+            $inc: {
+              checkins_current: 1,
+              checkins_total: 1
+            }
+          },
+          new: true
+        },
+        (err, doc) => {
+          if (err) {
+            console.log(err);
+            return reject(err);
+          }
+
+          console.log("new doc after checkin into court");
+          console.log(doc);
+          resolve({
+            current: doc.checkins_current,
+            total: doc.checkins_total
+          });
+        }
+      );
+    });
   });
 }
 
