@@ -10,15 +10,17 @@ const createWithEmail = ({ email }) => {
     // Fist check if that email exist
     const emailFailure =
       "We failed to save your email. It's our fault and we are working on fixing it. Try again later";
-    Users.find({ email }, (error, doc) => {
+    Users.find({ email }, (error, docs) => {
       if (error) {
         console.log("Failed to find email with error: ", error);
         reject({ error: emailFailure });
       }
 
-      if (doc) {
+      console.log("Found docs: ", docs);
+
+      if (docs && docs.length > 0) {
         console.log("Email already exists: ", email);
-        return resolve({ email: doc[0].email });
+        return resolve({ email: docs[0].email });
       }
 
       Users.save({ email, courtsOfInterest: "" }, (error, doc) => {
