@@ -154,11 +154,13 @@ Router.get("/checkins/:court_id/:requestor/:clientId", (req, res) => {
 
 // Users routes
 Router.post("/users/email", (req, res) => {
+  console.log("Hit email creation route");
   if (!req.body || !req.body.email) {
     return res.status(500).json({ error: "No body on request or no email" });
   }
 
   const { email } = req.body;
+  console.log("email: ", email);
   Users.createWithEmail({ email })
     .then(email => res.status(200).json(email))
     .catch(error => res.status(404).json(error));
