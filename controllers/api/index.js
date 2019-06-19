@@ -153,20 +153,57 @@ Router.get("/checkins/:court_id/:requestor/:clientId", (req, res) => {
 });
 
 // Users routes
-Router.post("/users", (req, res) => {
-  const { username, token, location } = req.body;
+Router.post("/users/email", (req, res) => {
+  if (!req.body || !req.body.email) {
+    return res.status(500).json({ error: "No body on request or no email" });
+  }
 
-  if (!username || !token || !location || !location.lat || !location.lng) {
+  const { email } = req.body;
+  Users.createWithEmail({ email })
+    .then(email => res.status(200).json(email))
+    .catch(error => res.status(404).json(error));
+});
+
+Router.post("/users/username", (req, res) => {
+  if (!req.body) {
+    return res.statust(500).json({
+      error: "Oops something doesn't look right. No body on the request"
+    });
+  }
+  const { email, username } = req.body;
+
+  if (!email || !username) {
     return res.json({
-      error: "username, token, lat, and lng are required payloads"
+      error: "email and username are required payloads"
     });
   }
 
-  let { lat, lng } = location;
-  lat = Number(lat);
-  lng = Number(lng);
+  Users.updateUsername({ email, username })
+    .then(success => res.status(200).json(success))
+    .catch(error => res.status(404).json(error));
+});
 
-  Users.save({ username, token, lat, lng })
+Router.get("/users/takenUsernames", (req, res) => {
+  Users.getTakenUsernames()
+    .then(takenUsernames => res.status(200).json(takenUsernames))
+    .catch(error => res.status(404).json(error));
+});
+
+Router.post("/users/token", (req, res) => {
+  if (!req.body) {
+    return res.statust(500).json({
+      error: "Oops something doesn't look right. No body on the request"
+    });
+  }
+  const { email, token } = req.body;
+
+  if (!email || !token) {
+    return res.json({
+      error: "email and token are required payloads"
+    });
+  }
+
+  Users.updateToken({ email, token })
     .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
 });
@@ -189,54 +226,54 @@ Router.post("/users/location", (req, res) => {
     .catch(error => res.status(404).json(error));
 });
 
-Router.get("/users/courts/interest/:username", (req, res) => {
-  const { username } = req.params;
+Router.get("/users/courts/interest/:email", (req, res) => {
+  const { email } = req.params;
 
-  if (!username) {
+  if (!email) {
     return res.json({
-      error: "username is a required payload"
+      error: "email is a required payload"
     });
   }
 
-  Users.getCourtsOfInterest({ username })
+  Users.getCourtsOfInterest({ email })
     .then(courtsOfInterest => res.status(200).json(courtsOfInterest))
     .catch(error => res.status(404).json(error));
 });
 
 Router.post("/users/courts/interest", (req, res) => {
-  const { username, courtId } = req.body;
+  const { email, courtId } = req.body;
 
-  if (!username || !courtId) {
+  if (!email || !courtId) {
     return res.json({
-      error: "username and courtId are required payloads"
+      error: "email and courtId are required payloads"
     });
   }
 
   console.log(
-    `Adding court: ${courtId} on user: @${username} list of courts they are interested in`
+    `Adding court: ${courtId} on user: @${email} list of courts they are interested in`
   );
 
-  Users.addToCourtsOfInterest({ username, courtId })
+  Users.addToCourtsOfInterest({ email, courtId })
     .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
 });
 
 Router.delete("/users/courts/interest", (req, res) => {
   console.log("In DELETE route /user/courts/interest");
-  const { username, courtId } = req.body;
-  console.log(`Username: ${username} courtId: ${courtId}`);
+  const { email, courtId } = req.body;
+  console.log(`email: ${email} courtId: ${courtId}`);
 
-  if (!username || !courtId) {
+  if (!email || !courtId) {
     return res.json({
-      error: "username and courtId are required payloads"
+      error: "email and courtId are required payloads"
     });
   }
 
   console.log(
-    `Removing court: ${courtId} from user: @${username} list of courts of interest`
+    `Removing court: ${courtId} from user: @${email} list of courts of interest`
   );
 
-  Users.removeFromCourtsOfInterest({ username, courtId })
+  Users.removeFromCourtsOfInterest({ email, courtId })
     .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
 });
@@ -259,16 +296,16 @@ Router.get("/users/near/:lat/:lng", (req, res) => {
     .catch(error => res.status(404).json(error));
 });
 
-Router.delete("/users/:username", (req, res) => {
-  const { username } = req.params;
+Router.delete("/users/token/:email", (req, res) => {
+  const { email } = req.params;
 
-  if (!username) {
+  if (!email) {
     return res.json({
-      error: "username is a required request parameter"
+      error: "email is a required request parameter"
     });
   }
 
-  Users.remove({ username })
+  Users.removeToken({ email })
     .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
 });

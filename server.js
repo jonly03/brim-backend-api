@@ -203,13 +203,16 @@ notifyUsersNearACourt = ({ type, info }) => {
         "Filtering out users with invalid push tokens and the user who initiated the notification (if a username exists)..."
       );
       // Filter out users with invalid push tokens and the user who sent the message
+      // Some users might not have push tokens
       let potentialUsersToNotify = users.filter(user => {
         const { username, token: pushToken } = user;
 
         if (sender) {
           // When it's a chatroom message the sender is always a valid username
           // Anyone can check in without a username, so take care of that
-          return username !== sender && Expo.isExpoPushToken(pushToken);
+          return (
+            pushToken && username !== sender && Expo.isExpoPushToken(pushToken)
+          );
         }
 
         return Expo.isExpoPushToken(pushToken);
@@ -526,21 +529,5 @@ io.on("connection", socket => {
         socket.broadcast.emit("decrement_nearby_online_count", courtIds);
       }
     });
-  });
-
-  // Keep an ear out for when new clients want to know taken usernames
-  socket.on("get_taken_usernames", () => {
-    console.log("New user about to pick a username...");
-    console.log(
-      "Sending message to all clients with usernames to tell us what they are..."
-    );
-    socket.broadcast.emit("get_taken_username");
-  });
-
-  // Broadcast to other clients the taken username
-  socket.on("taken_username", username => {
-    console.log("Connected clients sending us their taken usernames");
-    console.log(username, " username is taken");
-    socket.broadcast.emit("taken_usernames", username);
   });
 });

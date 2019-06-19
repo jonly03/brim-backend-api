@@ -4,38 +4,91 @@
 const Users = require("../MongoDB").collection("users");
 var locationHelpers = require("../locationHelpers");
 
-const save = ({ username, token, lat, lng }) => {
+const createWithEmail = ({ email }) => {
   return new Promise((resolve, reject) => {
-    Users.update(
-      { token },
-      { $set: { username, lat, lng, courtsOfInterest: "" } },
-      { upsert: true },
-      error => {
+    // Sometimes users will uninstall the app, which will delete their AsyncStorage email
+    // Fist check if that email exist
+    const emailFailure =
+      "We failed to save your email. It's our fault and we are working on fixing it. Try again later";
+    Users.find({ email }, (error, doc) => {
+      if (error) {
+        console.log("Failed to find email with error: ", error);
+        reject({ error: emailFailure });
+      }
+
+      if (doc) {
+        console.log("Email already exists: ", email);
+        return resolve({ email: doc[0].email });
+      }
+
+      Users.save({ email, courtsOfInterest: "" }, (error, doc) => {
         if (error) {
-          console.log("Failed to save new user with error");
-          console.log(error);
-          return reject({ error });
+          console.log("Failed to save new user with email with error: ", error);
+          reject({ error: emailFailure });
         }
 
-        return resolve({ success: "success" });
-      }
-    );
+        console.log("Successfully saved new user with email");
+        return resolve({ email });
+      });
+    });
   });
 };
 
-const updateLocation = ({ username, lat, lng }) => {
+const updateUsername = ({ email, username }) => {
   return new Promise((resolve, reject) => {
-    Users.find({ username }, (error, doc) => {
+    Users.update({ email }, { $set: { username } }, error => {
+      if (error) {
+        console.log("Failed to save new user username with error", error);
+        return reject({ error });
+      }
+
+      return resolve({ success: "success" });
+    });
+  });
+};
+
+const getTakenUsernames = () => {
+  return new Promise((resolve, reject) => {
+    Users.find({}, (error, docs) => {
+      if (error) {
+        console.log("Failed to find taken usernames with error", error);
+        return reject({ error });
+      }
+
+      // Filter out users with no usernames
+      const usersWithUsernames = docs.filter(user => user.username);
+      const takenUsernames = usersWithUsernames.map(user => user.username);
+      return resolve({ takenUsernames });
+    });
+  });
+};
+
+const updateToken = ({ email, token }) => {
+  return new Promise((resolve, reject) => {
+    Users.update({ email }, { $set: { token } }, error => {
+      if (error) {
+        console.log("Failed to save new user token with error", error);
+        return reject({ error });
+      }
+
+      return resolve({ success: "success" });
+    });
+  });
+};
+
+const updateLocation = ({ email, lat, lng }) => {
+  return new Promise((resolve, reject) => {
+    Users.find({ email }, (error, doc) => {
       if (error) {
         return reject({ error });
       }
 
       if (doc.length === 0) {
-        console.log(`${username} does not exist`);
-        return resolve({ error: `user: ${username} does not exist` });
+        console.log(`${email} does not exist`);
+        return resolve({ error: `user: ${email} does not exist` });
       }
 
-      Users.update({ username }, { $set: { lat, lng } }, error => {
+      Users.update({ email }, { $set: { lat, lng } }, error => {
         if (error) {
           console.log("Failed to update user's location with error");
           console.log(error);
@@ -48,16 +101,16 @@ const updateLocation = ({ username, lat, lng }) => {
   });
 };
 
-const addToCourtsOfInterest = ({ username, courtId }) => {
+const addToCourtsOfInterest = ({ email, courtId }) => {
   return new Promise((resolve, reject) => {
-    Users.find({ username }, (error, docs) => {
+    Users.find({ email }, (error, docs) => {
       if (error) {
         return reject({ error });
       }
 
       if (docs.length === 0) {
-        console.log(`${username} does not exist`);
-        return resolve({ error: `user: ${username} does not exist` });
+        console.log(`${email} does not exist`);
+        return resolve({ error: `user: ${email} does not exist` });
       }
 
       // courtsOfInterest is a comma separated string of courtIds
@@ -68,7 +121,7 @@ const addToCourtsOfInterest = ({ username, courtId }) => {
           : [];
       if (courtIds.indexOf(courtId) !== -1) {
         return resolve({
-          success: `Court: ${courtId} already marked as of interest to user: ${username}`
+          success: `Court: ${courtId} already marked as of interest to user: ${email}`
         });
       }
 
@@ -76,10 +129,10 @@ const addToCourtsOfInterest = ({ username, courtId }) => {
       const courtsOfInterest =
         courtIds.length > 1 ? courtIds.join(",") : courtIds.toString();
 
-      Users.update({ username }, { $set: { courtsOfInterest } }, error => {
+      Users.update({ email }, { $set: { courtsOfInterest } }, error => {
         if (error) {
           console.log(
-            `Failed to add court: ${courtId} to user: ${username} courtsOfInterest with error`
+            `Failed to add court: ${courtId} to user: ${email} courtsOfInterest with error`
           );
           console.log(error);
           return reject({ error });
@@ -91,16 +144,16 @@ const addToCourtsOfInterest = ({ username, courtId }) => {
   });
 };
 
-const removeFromCourtsOfInterest = ({ username, courtId }) => {
+const removeFromCourtsOfInterest = ({ email, courtId }) => {
   return new Promise((resolve, reject) => {
-    Users.find({ username }, (error, docs) => {
+    Users.find({ email }, (error, docs) => {
       if (error) {
         return reject({ error });
       }
 
       if (docs.length === 0) {
-        console.log(`${username} does not exist`);
-        return resolve({ error: `user: ${username} does not exist` });
+        console.log(`${email} does not exist`);
+        return resolve({ error: `user: ${email} does not exist` });
       }
 
       // courtsOfInterest is a comma separated string of courtIds
@@ -112,7 +165,7 @@ const removeFromCourtsOfInterest = ({ username, courtId }) => {
       const courtIdx = courtIds.indexOf(courtId);
       if (courtIdx === -1) {
         return resolve({
-          success: `Court: ${courtId} not marked as a courtsOfInterest to user: ${username}`
+          success: `Court: ${courtId} not marked as a courtsOfInterest to user: ${email}`
         });
       }
 
@@ -124,10 +177,10 @@ const removeFromCourtsOfInterest = ({ username, courtId }) => {
       const courtsOfInterest =
         courtIds.length > 1 ? courtIds.join(",") : courtIds.toString();
 
-      Users.update({ username }, { $set: { courtsOfInterest } }, error => {
+      Users.update({ email }, { $set: { courtsOfInterest } }, error => {
         if (error) {
           console.log(
-            `Failed to remove court: ${courtId} from user: ${username} courtsOfInterest with error`
+            `Failed to remove court: ${courtId} from user: ${email} courtsOfInterest with error`
           );
           console.log(error);
           return reject({ error });
@@ -139,16 +192,16 @@ const removeFromCourtsOfInterest = ({ username, courtId }) => {
   });
 };
 
-const getCourtsOfInterest = ({ username }) => {
+const getCourtsOfInterest = ({ email }) => {
   return new Promise((resolve, reject) => {
-    Users.find({ username }, (error, docs) => {
+    Users.find({ email }, (error, docs) => {
       if (error) {
         return reject({ error });
       }
 
       if (docs.length === 0) {
-        console.log(`${username} does not exist`);
-        return resolve({ error: `user: ${username} does not exist` });
+        console.log(`${email} does not exist`);
+        return resolve({ error: `user: ${email} does not exist` });
       }
 
       const courtIds =
@@ -169,38 +222,50 @@ const getUsersNearAPoint = ({ latLng }) => {
   });
 };
 
-const remove = ({ username }) => {
+const removeToken = ({ email }) => {
   return new Promise((resolve, reject) => {
-    Users.find({ username }, (error, doc) => {
+    Users.update({ email }, { $unset: { token: "" } }, error => {
       if (error) {
+        console.log(`Failed to remove user token: ${email}`);
+        console.log(error);
         return reject({ error });
       }
 
-      if (doc.length === 0) {
-        console.log(`${username} does not exist`);
-        return resolve({ error: `user: ${username} does not exist` });
-      }
-
-      Users.remove({ username }, error => {
-        if (error) {
-          console.log(`Failed to remove user: ${username}`);
-          console.log(error);
-          return reject({ error });
-        }
-
-        return resolve({ success: "success" });
-      });
+      return resolve({ success: "success" });
     });
+    // Users.find({ username }, (error, doc) => {
+    //   if (error) {
+    //     return reject({ error });
+    //   }
+
+    //   if (doc.length === 0) {
+    //     console.log(`${username} does not exist`);
+    //     return resolve({ error: `user: ${username} does not exist` });
+    //   }
+
+    //   Users.remove({ username }, error => {
+    //     if (error) {
+    //       console.log(`Failed to remove user: ${username}`);
+    //       console.log(error);
+    //       return reject({ error });
+    //     }
+
+    //     return resolve({ success: "success" });
+    //   });
+    // });
   });
 };
 
 module.exports = {
-  save,
+  createWithEmail,
+  updateUsername,
+  getTakenUsernames,
+  updateToken,
   updateLocation,
   addToCourtsOfInterest,
   removeFromCourtsOfInterest,
   getCourtsOfInterest,
   getUsersNearAPoint,
-  remove
+  removeToken
   // getUserToken
 };
