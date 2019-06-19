@@ -6,8 +6,7 @@ var locationHelpers = require("../locationHelpers");
 
 const createWithEmail = ({ email }) => {
   return new Promise((resolve, reject) => {
-    // Sometimes users will uninstall the app, which will delete their AsyncStorage email
-    // Fist check if that email exist
+    // Fist check if that email exist, we can't let an email be used twice
     const emailFailure =
       "We failed to save your email. It's our fault and we are working on fixing it. Try again later";
     Users.find({ email }, (error, docs) => {
@@ -20,7 +19,7 @@ const createWithEmail = ({ email }) => {
 
       if (docs && docs.length > 0) {
         console.log("Email already exists: ", email);
-        return resolve({ email: docs[0].email });
+        return resolve({ error: "Email already used. Try another one." });
       }
 
       Users.save({ email, courtsOfInterest: "" }, (error, doc) => {
