@@ -183,7 +183,13 @@ let server = app.listen(PORT, () => {
 
 notifyUsersNearACourt = ({ type, info }) => {
   // Only notify users near the court who have granted us permission to send them push notifications
-  const { courtLocation: latLng, courtId, sender, courtName } = info;
+  const {
+    courtLocation: latLng,
+    courtId,
+    username: senderUsername,
+    email: senderEmail,
+    courtName
+  } = info;
 
   Users.getUsersNearAPoint({ latLng })
     .then(data => {
@@ -200,26 +206,30 @@ notifyUsersNearACourt = ({ type, info }) => {
         }`
       );
       console.log(
-        "Filtering out users with invalid push tokens and the user who initiated the notification (if a username exists)..."
+        "Filtering out users with invalid push tokens and the user who initiated the notification. If a username exists use it (case of chat messages) otherwise use email)..."
       );
       // Filter out users with invalid push tokens and the user who sent the message
       // Some users might not have push tokens
       let potentialUsersToNotify = users.filter(user => {
-        const { username, token: pushToken } = user;
+        const { email, username, token: pushToken } = user;
 
-        if (sender) {
-          // When it's a chatroom message the sender is always a valid username
+        if (senderUsername) {
+          // When it's a chatroom message the senderUsername is always a valid username
           // Anyone can check in without a username, so take care of that
           return (
-            pushToken && username !== sender && Expo.isExpoPushToken(pushToken)
+            pushToken &&
+            username !== senderUsername &&
+            Expo.isExpoPushToken(pushToken)
           );
         }
 
-        return Expo.isExpoPushToken(pushToken);
+        return (
+          pushToken && email !== senderEmail && Expo.isExpoPushToken(pushToken)
+        );
       });
 
       console.log(
-        "Done filtering out users with invalid push tokens and the user who initiated the notification (if a username exists)"
+        "Done filtering out users with invalid push tokens and the user who initiated the notification. If a username exists use it (case of chat messages) otherwise use email)"
       );
       console.log(
         "Getting courts of interest for our potential users to notify..."
@@ -385,7 +395,7 @@ io.on("connection", socket => {
 
   // When connected, keep an ear out for checkin messages and save the connected client
   socket.on("checkin", data => {
-    const { courtId, sender: username, checkInTime } = data;
+    const { courtId, username, checkInTime } = data;
 
     console.log(
       "checkin message from clientId/" +
