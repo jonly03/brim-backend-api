@@ -223,6 +223,24 @@ const getUsersNearAPoint = ({ latLng }) => {
   });
 };
 
+const getToken = ({ email }) => {
+  return new Promise((resolve, reject) => {
+    Users.find({ email }, (error, docs) => {
+      if (error) {
+        console.log("Failed to get user token with error", error);
+        return reject({ error });
+      }
+
+      if (docs.length === 0) {
+        console.log(`${email} does not exist`);
+        return resolve({ error: `user: ${email} does not exist` });
+      }
+
+      return resolve({ token: docs[0].token });
+    });
+  });
+};
+
 const removeToken = ({ email }) => {
   return new Promise((resolve, reject) => {
     Users.update({ email }, { $unset: { token: "" } }, error => {
@@ -267,6 +285,6 @@ module.exports = {
   removeFromCourtsOfInterest,
   getCourtsOfInterest,
   getUsersNearAPoint,
-  removeToken
-  // getUserToken
+  removeToken,
+  getToken
 };
