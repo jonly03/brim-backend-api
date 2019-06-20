@@ -211,11 +211,11 @@ Router.post("/users/token", (req, res) => {
 });
 
 Router.post("/users/location", (req, res) => {
-  const { username, location } = req.body;
+  const { email, location } = req.body;
 
-  if (!username || !location || !location.lat || !location.lng) {
+  if (!email || !location || !location.lat || !location.lng) {
     return res.json({
-      error: "username, token, lat, and lng are required payloads"
+      error: "email, token, lat, and lng are required payloads"
     });
   }
 
@@ -223,7 +223,7 @@ Router.post("/users/location", (req, res) => {
   lat = Number(lat);
   lng = Number(lng);
 
-  Users.updateLocation({ username, lat, lng })
+  Users.updateLocation({ email, lat, lng })
     .then(success => res.status(200).json(success))
     .catch(error => res.status(404).json(error));
 });
