@@ -762,7 +762,7 @@ function incrementCourtsNearbyOnlineCounts(clientId, coords) {
           });
 
           console.log("Built queries to match all nearby courts");
-          console.log(queries);
+          // console.log(queries);
 
           // With no 1 cmd to update many documents and return the new updated documents, update them all and just return the courtIds
           console.log(`Found courts near clientId/${clientId}`);
