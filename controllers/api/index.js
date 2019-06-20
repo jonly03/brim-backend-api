@@ -1,5 +1,6 @@
 const express = require("express");
 const aws = require("aws-sdk");
+const { Expo } = require("expo-server-sdk");
 let expo = new Expo();
 
 const helpers = require("./helpers");
