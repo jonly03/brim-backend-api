@@ -237,7 +237,7 @@ notifyUsersNearACourt = ({ type, info }) => {
       const getPotentialUsersToNotifyCourtsOfInterest = potentialUsersToNotify.map(
         user =>
           Users.getCourtsOfInterest({
-            username: user.username
+            email: user.email
           })
       );
 
