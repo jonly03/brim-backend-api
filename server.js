@@ -285,7 +285,9 @@ notifyUsersNearACourt = ({ type, info }) => {
             if (type === "new_chatroom_msg") {
               title = `New BRIM Message Alert at a court ${dist}mi near you!`;
 
-              body = `@${username} in ${courtName} chat room:\n${info.text}`;
+              body = `@${senderUsername} in ${courtName} chat room:\n${
+                info.text
+              }`;
             } else if (type === "checkedin") {
               title = `New BRIM Checkin Alert at a court ${dist}mi near you!`;
 
