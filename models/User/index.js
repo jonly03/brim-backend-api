@@ -19,7 +19,7 @@ const createWithEmail = ({ email }) => {
 
       if (docs && docs.length > 0) {
         console.log("Email already exists: ", email);
-        return resolve({ error: "Email already used. Try another one." });
+        return resolve({ error: "Email already in use" });
       }
 
       Users.save({ email, courtsOfInterest: "" }, (error, doc) => {
