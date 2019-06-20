@@ -285,7 +285,7 @@ notifyUsersNearACourt = ({ type, info }) => {
             if (type === "new_chatroom_msg") {
               title = `New BRIM Message Alert at a court ${dist}mi near you!`;
 
-              body = `@${sender} in ${courtName} chat room:\n${info.text}`;
+              body = `@${username} in ${courtName} chat room:\n${info.text}`;
             } else if (type === "checkedin") {
               title = `New BRIM Checkin Alert at a court ${dist}mi near you!`;
 
@@ -301,7 +301,7 @@ notifyUsersNearACourt = ({ type, info }) => {
               to: pushToken,
               sound: "default",
               body,
-              data: { courtId, sender, courtName, type }
+              data: { courtId, username, courtName, type }
             });
           }
 
@@ -459,7 +459,7 @@ io.on("connection", socket => {
   // Keep an ear out for when clients send chat room messages and broadcast them to other clients in the same room
   socket.on("chatroom_msg", message => {
     console.log(
-      `Received message from @${message.sender} in chatroom of courtId: ${
+      `Received message from @${message.username} in chatroom of courtId: ${
         message.courtId
       } located at {lat: ${message.courtLocation.lat}, lng: ${
         message.courtLocation.lng
