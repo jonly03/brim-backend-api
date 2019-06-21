@@ -225,8 +225,109 @@ Router.post("/users/location", (req, res) => {
   lng = Number(lng);
 
   Users.updateLocation({ email, lat, lng })
-    .then(success => res.status(200).json(success))
-    .catch(error => res.status(404).json(error));
+    .then(success => {
+      // res.status(200).json(success)
+      console.log("successfully updated user location");
+      courtHelpers
+        .getNearbyCourts({ lat, lng })
+        .then(courtsRes => {
+          console.log(
+            "Done getting nearby courts from background location update."
+          );
+
+          // We only expect the user to only at one court
+          const [courtToCheckin] = courtsRes.docs.filter(
+            court => court.dist === 0
+          );
+
+          if (!courtToCheckin) {
+            return res.status(200).json({ success: "user not at a court" });
+          }
+
+          Users.getToken({ email })
+            .then(({ token }) => {
+              if (!token || !Expo.isExpoPushToken(token)) {
+                return res
+                  .status(200)
+                  .json({ success: "user does not have a push token" });
+              }
+
+              // Create notification
+              let notifications = [];
+              let title = `You are at ${courtToCheckin.name}. Here to 🏀?`;
+              let body = "Check in to alert other players to join you";
+              notifications.push({
+                title,
+                to: token,
+                sound: "default",
+                body,
+                data: {
+                  courtId: courtToCheckin._id,
+                  type: "background_location_checkin"
+                }
+              });
+
+              // Send notification
+              let chunks = expo.chunkPushNotifications(notifications);
+              let tickets = [];
+              (async () => {
+                // Send the chunks to the Expo push notification service. There are
+                // different strategies you could use. A simple one is to send one chunk at a
+                // time, which nicely spreads the load out over time:
+
+                try {
+                  let ticketChunk = await expo.sendPushNotificationsAsync(
+                    chunks[0]
+                  );
+                  console.log(ticketChunk);
+                  tickets.push(...ticketChunk);
+                  return res
+                    .status(200)
+                    .json({
+                      success:
+                        "successfully sent push notification from location update"
+                    });
+                  // NOTE: If a ticket contains an error code in ticket.details.error, you
+                  // must handle it appropriately. The error codes are listed in the Expo
+                  // documentation:
+                  // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
+                } catch (error) {
+                  console.error(error);
+                  return res.status(404).json({
+                    error:
+                      "failed to send push notification from background_location"
+                  });
+                }
+              })();
+            })
+            .catch(error => {
+              console.log(
+                "Failed to get token from background location update with error: ",
+                error
+              );
+              return res
+                .status(404)
+                .json({
+                  error: "failed to get user token from location update"
+                });
+            });
+        })
+        .catch(err => {
+          console.log(
+            "Failed to get nearby courts from background location with error: ",
+            err
+          );
+          return res
+            .status(500)
+            .json({
+              error: `Failed to get nearby courts on update location with error: ${err}`
+            });
+        });
+    })
+    .catch(error => {
+      console.log("Failed to update user location with error", error);
+      res.status(404).json({ error });
+    });
 });
 
 Router.post("/users/background_location", (req, res) => {
@@ -309,12 +410,10 @@ Router.post("/users/background_location", (req, res) => {
               // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
             } catch (error) {
               console.error(error);
-              res
-                .status(404)
-                .json({
-                  error:
-                    "failed to send push notification from background_location"
-                });
+              res.status(404).json({
+                error:
+                  "failed to send push notification from background_location"
+              });
             }
           })();
         })
