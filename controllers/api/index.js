@@ -295,18 +295,26 @@ Router.post("/users/background_location", (req, res) => {
             // Send the chunks to the Expo push notification service. There are
             // different strategies you could use. A simple one is to send one chunk at a
             // time, which nicely spreads the load out over time:
-            for (let chunk of chunks) {
-              try {
-                let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-                console.log(ticketChunk);
-                tickets.push(...ticketChunk);
-                // NOTE: If a ticket contains an error code in ticket.details.error, you
-                // must handle it appropriately. The error codes are listed in the Expo
-                // documentation:
-                // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
-              } catch (error) {
-                console.error(error);
-              }
+
+            try {
+              let ticketChunk = await expo.sendPushNotificationsAsync(
+                chunks[0]
+              );
+              console.log(ticketChunk);
+              tickets.push(...ticketChunk);
+              res.status(200).json({ success: "success" });
+              // NOTE: If a ticket contains an error code in ticket.details.error, you
+              // must handle it appropriately. The error codes are listed in the Expo
+              // documentation:
+              // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
+            } catch (error) {
+              console.error(error);
+              res
+                .status(404)
+                .json({
+                  error:
+                    "failed to send push notification from background_location"
+                });
             }
           })();
         })
