@@ -5,14 +5,11 @@ const courtHelpers = require("./models/court/details/helpers");
 const Users = require("./models").users;
 const { Expo } = require("expo-server-sdk");
 const http = require("http");
-var Mixpanel = require("mixpanel");
+const { track } = require("./utils/tracker");
+const Axios = require("axios");
 
 // Create a new Expo SDK client
 let expo = new Expo();
-
-var mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
-  protocol: "https"
-});
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -138,34 +135,64 @@ app.post("/checkout/:courtId", (req, res) => {
 
 app.post("/track/:event", (req, res) => {
   if (process.env.NODE_ENV === "production") {
-    // non_supported_cities,successful_visits,went_to_court,checked_in, chatroom_msg
+    // visit,went_to_court,checked_in, chatroom_msg
     console.log("Tracking...");
 
     const { event } = req.params;
-    if (!req.body || !req.body.lat || !req.body.lng)
+    if (!event || !req.body || !req.body.payload) {
       return res.status(400).send();
+    }
 
-    if (
-      event === "non_supported_cities" ||
-      event === "successful_visits" ||
-      event === "went_to_court" ||
-      event === "checked_in" ||
-      "chatroom_msg"
-    ) {
-      courtHelpers
-        .getLocDetails(req.body)
-        .then(loc => {
-          if (loc && loc.city && loc.city.length) {
-            console.log(`Event: ${event}`);
-            console.log(`City: ${loc.city}`);
-            console.log(`Country: ${loc.country}`);
-            mixpanel.track(event, { city: loc.city, country: loc.country });
-          }
-          res.send();
+    const { latLng, ...rest } = req.body.payload;
+    if (!latLng || !latLng.lat || !latLng.lng) {
+      return res.status(400).send();
+    }
+
+    if (req.body.payload.getWeather) {
+      Axios.get(
+        `api.openweathermap.org/data/2.5/weather?lat=${latLng.lat}&lon=${
+          latLng.lng
+        }&units=imperial`
+      )
+        .then(({ data }) => {
+          const weather = data.weather.main;
+          const temp_f = data.main.temp;
+
+          delete rest.getWeather;
+          rest = { weather, temp_f, ...rest };
+
+          track({ event, payload: rest })
+            .then(() => res.send())
+            .catch(error => {
+              console.log(
+                "Failed to send track event to mixpanel with error: ",
+                error
+              );
+              return res.send();
+            });
         })
-        .catch(err => res.send());
+        .catch(error => {
+          console.log("Failed to get weather with error: ", error);
+          track({ event, payload: rest })
+            .then(() => res.send())
+            .catch(error => {
+              console.log(
+                "Failed to send track event to mixpanel with error: ",
+                error
+              );
+              return res.send();
+            });
+        });
     } else {
-      res.send();
+      track({ event, payload: rest })
+        .then(() => res.send())
+        .catch(error => {
+          console.log(
+            "Failed to send track event to mixpanel with error: ",
+            error
+          );
+          return res.send();
+        });
     }
   } else {
     console.log("In testing environment. No need to send data to mixpanel");
