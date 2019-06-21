@@ -255,11 +255,15 @@ Router.post("/users/location", (req, res) => {
           Users.getToken({ email })
             .then(({ token }) => {
               if (!token || !Expo.isExpoPushToken(token)) {
+                console.log("user has no token");
                 return res
                   .status(200)
                   .json({ success: "user does not have a push token" });
               }
 
+              console.log(
+                "user has token. Creating a notification to send them"
+              );
               // Create notification
               let notifications = [];
               let title = `You are at ${courtToCheckin.name}. Here to 🏀?`;
@@ -275,6 +279,8 @@ Router.post("/users/location", (req, res) => {
                 }
               });
 
+              console.log("notification", notifications[0]);
+
               // Send notification
               let chunks = expo.chunkPushNotifications(notifications);
               let tickets = [];
@@ -289,6 +295,9 @@ Router.post("/users/location", (req, res) => {
                   );
                   console.log(ticketChunk);
                   tickets.push(...ticketChunk);
+                  console.log(
+                    "successfully sent push notification from location update"
+                  );
                   return res.status(200).json({
                     success:
                       "successfully sent push notification from location update"
