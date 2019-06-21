@@ -358,90 +358,92 @@ Router.post("/users/background_location", (req, res) => {
   Users.updateLocation({ email, lat, lng })
     .then(success => {
       console.log("Successfully updated user's location from the background");
+      return res.status(200).json({ success });
     })
     .catch(error => {
       console.log("Failed to update user's location from the background");
+      return res.status(404).json({ error });
     });
 
   // Get courts near this new location to check if user is a court
   // If at a court, send them a push notification to check in
-  courtHelpers
-    .getNearbyCourts({ lat, lng })
-    .then(courtsRes => {
-      console.log(
-        "Done getting nearby courts from background location update."
-      );
+  // courtHelpers
+  //   .getNearbyCourts({ lat, lng })
+  //   .then(courtsRes => {
+  //     console.log(
+  //       "Done getting nearby courts from background location update."
+  //     );
 
-      // We only expect the user to only at one court
-      const [courtToCheckin] = courtsRes.docs.filter(court => court.dist === 0);
+  //     // We only expect the user to only at one court
+  //     const [courtToCheckin] = courtsRes.docs.filter(court => court.dist === 0);
 
-      if (!courtToCheckin) {
-        return;
-      }
+  //     if (!courtToCheckin) {
+  //       return;
+  //     }
 
-      Users.getToken({ email })
-        .then(({ token }) => {
-          if (!token || !Expo.isExpoPushToken(token)) {
-            return;
-          }
+  //     Users.getToken({ email })
+  //       .then(({ token }) => {
+  //         if (!token || !Expo.isExpoPushToken(token)) {
+  //           return;
+  //         }
 
-          // Create notification
-          let notifications = [];
-          let title = `You are at ${courtToCheckin.name}. Here to 🏀?`;
-          let body = "Check in to alert other players to join you";
-          notifications.push({
-            title,
-            to: token,
-            sound: "default",
-            body,
-            data: {
-              courtId: courtToCheckin._id,
-              type: "background_location_checkin"
-            }
-          });
+  //         // Create notification
+  //         let notifications = [];
+  //         let title = `You are at ${courtToCheckin.name}. Here to 🏀?`;
+  //         let body = "Check in to alert other players to join you";
+  //         notifications.push({
+  //           title,
+  //           to: token,
+  //           sound: "default",
+  //           body,
+  //           data: {
+  //             courtId: courtToCheckin._id,
+  //             type: "background_location_checkin"
+  //           }
+  //         });
 
-          // Send notification
-          let chunks = expo.chunkPushNotifications(notifications);
-          let tickets = [];
-          (async () => {
-            // Send the chunks to the Expo push notification service. There are
-            // different strategies you could use. A simple one is to send one chunk at a
-            // time, which nicely spreads the load out over time:
+  //         // Send notification
+  //         let chunks = expo.chunkPushNotifications(notifications);
+  //         let tickets = [];
+  //         (async () => {
+  //           // Send the chunks to the Expo push notification service. There are
+  //           // different strategies you could use. A simple one is to send one chunk at a
+  //           // time, which nicely spreads the load out over time:
 
-            try {
-              let ticketChunk = await expo.sendPushNotificationsAsync(
-                chunks[0]
-              );
-              console.log(ticketChunk);
-              tickets.push(...ticketChunk);
-              res.status(200).json({ success: "success" });
-              // NOTE: If a ticket contains an error code in ticket.details.error, you
-              // must handle it appropriately. The error codes are listed in the Expo
-              // documentation:
-              // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
-            } catch (error) {
-              console.error(error);
-              res.status(404).json({
-                error:
-                  "failed to send push notification from background_location"
-              });
-            }
-          })();
-        })
-        .catch(error => {
-          console.log(
-            "Failed to get token from background location update with error: ",
-            error
-          );
-        });
-    })
-    .catch(err => {
-      console.log(
-        "Failed to get nearby courts from background location with error: ",
-        err
-      );
-      res.status(500).json(err);
-    });
+  //           try {
+  //             let ticketChunk = await expo.sendPushNotificationsAsync(
+  //               chunks[0]
+  //             );
+  //             console.log(ticketChunk);
+  //             tickets.push(...ticketChunk);
+  //             res.status(200).json({ success: "success" });
+  //             // NOTE: If a ticket contains an error code in ticket.details.error, you
+  //             // must handle it appropriately. The error codes are listed in the Expo
+  //             // documentation:
+  //             // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
+  //           } catch (error) {
+  //             console.error(error);
+  //             res.status(404).json({
+  //               error:
+  //                 "failed to send push notification from background_location"
+  //             });
+  //           }
+  //         })();
+  //       })
+  //       .catch(error => {
+  //         console.log(
+  //           "Failed to get token from background location update with error: ",
+  //           error
+  //         );
+  //       });
+  //   })
+  //   .catch(err => {
+  //     console.log(
+  //       "Failed to get nearby courts from background location with error: ",
+  //       err
+  //     );
+  //     res.status(500).json(err);
+  //   });
 });
 
 Router.get("/users/courts/interest/:email", (req, res) => {
