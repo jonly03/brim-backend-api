@@ -236,13 +236,21 @@ Router.post("/users/location", (req, res) => {
           );
 
           // We only expect the user to only at one court
-          const [courtToCheckin] = courtsRes.docs.filter(
+          const courtsToCheckin = courtsRes.docs.filter(
             court => court.dist === 0
           );
 
-          if (!courtToCheckin) {
+          if (
+            !courtsToCheckin ||
+            courtsToCheckin.length <= 0 ||
+            !courtsToCheckin[0]
+          ) {
+            console.log("user not at a court");
             return res.status(200).json({ success: "user not at a court" });
           }
+
+          const courtToCheckin = courtsToCheckin[0];
+          console.log("courtToCheckin: ", courtToCheckin);
 
           Users.getToken({ email })
             .then(({ token }) => {
@@ -281,12 +289,10 @@ Router.post("/users/location", (req, res) => {
                   );
                   console.log(ticketChunk);
                   tickets.push(...ticketChunk);
-                  return res
-                    .status(200)
-                    .json({
-                      success:
-                        "successfully sent push notification from location update"
-                    });
+                  return res.status(200).json({
+                    success:
+                      "successfully sent push notification from location update"
+                  });
                   // NOTE: If a ticket contains an error code in ticket.details.error, you
                   // must handle it appropriately. The error codes are listed in the Expo
                   // documentation:
@@ -305,11 +311,9 @@ Router.post("/users/location", (req, res) => {
                 "Failed to get token from background location update with error: ",
                 error
               );
-              return res
-                .status(404)
-                .json({
-                  error: "failed to get user token from location update"
-                });
+              return res.status(404).json({
+                error: "failed to get user token from location update"
+              });
             });
         })
         .catch(err => {
@@ -317,11 +321,9 @@ Router.post("/users/location", (req, res) => {
             "Failed to get nearby courts from background location with error: ",
             err
           );
-          return res
-            .status(500)
-            .json({
-              error: `Failed to get nearby courts on update location with error: ${err}`
-            });
+          return res.status(500).json({
+            error: `Failed to get nearby courts on update location with error: ${err}`
+          });
         });
     })
     .catch(error => {
