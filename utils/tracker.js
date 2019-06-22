@@ -19,7 +19,9 @@ const track = ({ event, payload }) => {
       event === "COURT_VISIT" ||
       event === "CHECKIN" ||
       event === "CHECKOUT_BY_MOVING_AWAY_FROM_COURT" ||
-      event === "NEW_CHATROOM_MESSAGE"
+      event === "NEW_CHATROOM_MESSAGE" ||
+      event === "USER_SHARED_APP" ||
+      event === "USER_VISITED_SHOP"
     ) {
       courtHelpers
         .getLocDetails(latLng)
