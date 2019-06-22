@@ -135,7 +135,7 @@ app.post("/checkout/:courtId", (req, res) => {
 
 app.post("/track/:event", (req, res) => {
   if (process.env.NODE_ENV === "production") {
-    // visit,went_to_court,checked_in, chatroom_msg
+    // FIRST_TIME_NON_REGISTERED_USER_VISIT, NEW_USER_ACCOUNT_CREATED, REGISTERED_USER_HOME_PAGE_VISIT, REGISTERED_USER_REPEAT_VISIT, PUSH_NOTIFICATION_TRIGGERED_VISIT, COURT_VISIT, CHECKIN, CHECKOUT_BY_MOVING_AWAY_FROM_COURT, NEW_CHATROOM_MESSAGE
     console.log("Tracking...");
 
     const { event } = req.params;
@@ -156,12 +156,12 @@ app.post("/track/:event", (req, res) => {
       )
         .then(({ data }) => {
           const weather = data.weather.main;
-          const temp_f = data.main.temp;
+          const tempFahrenheit = data.main.temp;
 
-          delete rest.getWeather;
-          rest = { weather, temp_f, ...rest };
+          delete rest.getWeather; // remove this property because we don't want to send it as part of the payload
+          const payload = { weather, tempFahrenheit, ...rest };
 
-          track({ event, payload: rest })
+          track({ event, payload })
             .then(() => res.send())
             .catch(error => {
               console.log(
