@@ -11,7 +11,7 @@ const analyticsDB =
       ? mongojs(
           `mongodb://${process.env.MLAB_USERNAME}:${
             process.env.MLAB_PASSWORD
-          }@${MLAB_DB_URL_ANALYTICS}`
+          }@${process.env.MLAB_DB_URL_ANALYTICS}`
         )
       : mongojs("analytics")
     : mongojs("localhost:27017/analytics");
