@@ -148,6 +148,8 @@ app.post("/track/:event", (req, res) => {
       return res.status(400).send();
     }
 
+    console.log("received: ", { event, payload: req.body.payload });
+
     if (req.body.payload.getWeather) {
       Axios.get(
         `api.openweathermap.org/data/2.5/weather?lat=${latLng.lat}&lon=${
