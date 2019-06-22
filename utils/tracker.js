@@ -1,5 +1,6 @@
 const Mixpanel = require("mixpanel");
 const courtHelpers = require("../models/court/details/helpers");
+const { saveCourtVisit } = require("../models/Analytics");
 
 const mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
   protocol: "https"
@@ -30,7 +31,28 @@ const track = ({ event, payload }) => {
             payload.city = loc.city;
             payload.country = loc.country;
 
-            delete payload.latLng; // Don't need to track this
+            if (event === "COURT_VISIT") {
+              // Don't need to track this on the Analytics (Data Science) side
+              const courtVisit = { ...payload };
+              delete courtVisit.email;
+              delete courtVisit.city;
+              delete courtVisit.country;
+              delete courtVisit.platform;
+
+              saveCourtVisit({ courtVisit })
+                .then(success => {
+                  console.log("Successfully saved courtVisit record");
+                })
+                .catch(error => {
+                  console.log(error);
+                });
+            }
+
+            // Don't need to track this on Mixpanel side
+            delete payload.latLng;
+            delete payload.timestamp;
+            delete payload.checkinsCurrentCount;
+            delete payload.courtId;
 
             console.log("Sending Tracking Event to MixPanel: ", {
               event,
