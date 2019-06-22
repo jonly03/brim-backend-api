@@ -7,6 +7,7 @@ const mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
 
 const track = ({ event, payload }) => {
   return new Promise((resolve, reject) => {
+    const { latLng } = payload;
     if (
       // List of all events
       !payload ||

@@ -163,7 +163,7 @@ app.post("/track/:event", (req, res) => {
           const tempFahrenheit = data.main.temp;
 
           delete rest.getWeather; // remove this property because we don't want to send it as part of the payload
-          const payload = { weather, tempFahrenheit, ...rest };
+          const payload = { latLng, weather, tempFahrenheit, ...rest };
 
           track({ event, payload })
             .then(() => res.send())
