@@ -159,11 +159,24 @@ app.post("/track/:event", (req, res) => {
       console.log("OPENWEATHERAPIURL: ", OpenWeatherAPIUrl);
       Axios.get(OpenWeatherAPIUrl)
         .then(({ data }) => {
-          const weather = data.weather.main;
-          const tempFahrenheit = data.main.temp;
+          const weatherInfo = {};
+          if (data) {
+            if (data.weather && data.weather.length > 0) {
+              weatherInfo.weather = data.weather[0].main;
+              weatherInfo.weatherDescription = data.weather[0].description;
+            }
+
+            if (data.main) {
+              weatherInfo.tempFahrenheit = data.main.temp;
+              weatherInfo.tempMinFahrenheit = data.main.temp_min;
+              weatherInfo.tempMaxFahrenheit = data.main.temp_max;
+              weatherInfo.humidityPercentage = data.main.humidity;
+              weatherInfo.windSpeedMilesPerHour = data.wind.speed;
+            }
+          }
 
           delete rest.getWeather; // remove this property because we don't want to send it as part of the payload
-          const payload = { latLng, weather, tempFahrenheit, ...rest };
+          const payload = { latLng, ...weatherInfo, ...rest };
 
           track({ event, payload })
             .then(() => res.send())
