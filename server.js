@@ -154,7 +154,7 @@ app.post("/track/:event", (req, res) => {
       Axios.get(
         `api.openweathermap.org/data/2.5/weather?lat=${latLng.lat}&lon=${
           latLng.lng
-        }&units=imperial`
+        }&units=imperial&APPID=${process.env.OPEN_WEATHER_API_KEY}`
       )
         .then(({ data }) => {
           const weather = data.weather.main;
