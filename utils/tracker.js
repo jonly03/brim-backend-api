@@ -8,6 +8,7 @@ const mixpanel = Mixpanel.init(process.env.MIXED_PANEL_TOKEN, {
 const track = ({ event, payload }) => {
   return new Promise((resolve, reject) => {
     if (
+      // List of all events
       !payload ||
       event == "FIRST_TIME_NON_REGISTERED_USER_VISIT" ||
       event == "NEW_USER_ACCOUNT_CREATED" ||
