@@ -151,11 +151,13 @@ app.post("/track/:event", (req, res) => {
     console.log("received: ", { event, payload: req.body.payload });
 
     if (req.body.payload.getWeather) {
-      Axios.get(
-        `api.openweathermap.org/data/2.5/weather?lat=${latLng.lat}&lon=${
-          latLng.lng
-        }&units=imperial&APPID=${process.env.OPEN_WEATHER_API_KEY}`
-      )
+      const OpenWeatherAPIUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${
+        latLng.lat
+      }&lon=${latLng.lng}&units=imperial&APPID=${
+        process.env.OPEN_WEATHER_API_KEY
+      }`;
+      console.log("OPENWEATHERAPIURL: ", OpenWeatherAPIUrl);
+      Axios.get(OpenWeatherAPIUrl)
         .then(({ data }) => {
           const weather = data.weather.main;
           const tempFahrenheit = data.main.temp;
