@@ -29,9 +29,11 @@ const track = ({ event, payload }) => {
 
             delete payload.latLng; // Don't need to track this
 
-            console.log("MixPanel Event: ", event);
-            console.log("Payload to MixPanel: ", payload);
-            mixpanel.track(event, payload);
+            console.log("Sending Tracking Event to MixPanel: ", {
+              event,
+              payload
+            });
+            // mixpanel.track(event, payload);
           }
           return resolve();
         })
