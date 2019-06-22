@@ -31,9 +31,15 @@ const track = ({ event, payload }) => {
             payload.city = loc.city;
             payload.country = loc.country;
 
+            const { latLng } = payload;
+
+            // Don't need to track this on Mixpanel side
+            delete payload.latLng;
+
             if (event === "COURT_VISIT") {
               // Don't need to track this on the Analytics (Data Science) side
-              const courtVisit = { ...payload };
+
+              const courtVisit = { ...payload, ...latLng };
               delete courtVisit.email;
               delete courtVisit.city;
               delete courtVisit.country;
@@ -49,7 +55,6 @@ const track = ({ event, payload }) => {
             }
 
             // Don't need to track this on Mixpanel side
-            delete payload.latLng;
             delete payload.timestamp;
             delete payload.checkinsCurrentCount;
             delete payload.courtId;
