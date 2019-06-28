@@ -17,9 +17,14 @@ const createWithEmail = ({ email }) => {
 
       console.log("Found docs: ", docs);
 
+      // if (docs && docs.length > 0) {
+      //   console.log("Email already exists: ", email);
+      //   return resolve({ error: "Email already in use" });
+      // }
+
+      // For now allow already used email to pass through
       if (docs && docs.length > 0) {
-        console.log("Email already exists: ", email);
-        return resolve({ error: "Email already in use" });
+        return resolve({ email });
       }
 
       Users.save({ email, courtsOfInterest: "" }, (error, doc) => {
