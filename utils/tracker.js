@@ -63,7 +63,7 @@ const track = ({ event, payload }) => {
               event,
               payload
             });
-            // mixpanel.track(event, payload);
+            mixpanel.track(event, payload);
           }
           return resolve();
         })
