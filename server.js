@@ -441,7 +441,7 @@ io.on("connection", socket => {
 
   // When connected, keep an ear out for checkin messages and save the connected client
   socket.on("checkin", data => {
-    const { courtId, username, checkInTime } = data;
+    const { courtId, courtName, email, username, checkInTime } = data;
 
     console.log(
       "checkin message from clientId/" +
@@ -451,7 +451,13 @@ io.on("connection", socket => {
     );
     console.log("checking client in...");
     courtHelpers
-      .checkin({ clientId: socket.id, courtId, username, checkInTime })
+      .checkin({
+        clientId: socket.id,
+        courtId,
+        courtName,
+        username,
+        checkInTime
+      })
       .then(checkins => {
         console.log(
           "Done checking clientId/" + socket.id + " into courtId/" + courtId

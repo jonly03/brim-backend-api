@@ -362,7 +362,7 @@ function sortByNearestMongoDB(latLng, courtsList) {
   return courts.sort((court1, court2) => court1.dist - court2.dist);
 }
 
-function checkin({ clientId, courtId, username, checkInTime }) {
+function checkin({ clientId, courtId, courtName, username, checkInTime }) {
   return new Promise((resolve, reject) => {
     // Find the court and increase the current and total checkins
     //     firestoreCourtsRef.doc(courtId).get().then(doc =>{
@@ -446,7 +446,8 @@ function checkin({ clientId, courtId, username, checkInTime }) {
         );
         const newUser = {
           client_id: clientId,
-          checkInTime
+          checkInTime,
+          courtName
         };
         if (username) {
           // Make sure that we save the checkedin users if they have them
