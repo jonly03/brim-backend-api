@@ -27,7 +27,14 @@ const createWithEmail = ({ email }) => {
         return resolve({ email });
       }
 
-      Users.save({ email, courtsOfInterest: "" }, (error, doc) => {
+      const newUser = {
+        email,
+        courtsOfInterest: "",
+        checkinsCount: 0,
+        hasProvidedStoreReview: false
+      };
+
+      Users.save(newUser, (error, doc) => {
         if (error) {
           console.log("Failed to save new user with email with error: ", error);
           reject({ error: emailFailure });
